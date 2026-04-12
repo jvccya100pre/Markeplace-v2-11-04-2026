@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin</title>
-    <link rel="icon" href="<?php echo esc(app_url('/img/company/LogoTuTiendaOnline3.png')); ?>" type="image/png">
+    <link rel="icon" href="<?php echo esc(app_url('/img/company/icono.ico')); ?>" type="image/x-icon">
     <link rel="stylesheet" href="<?php echo esc(app_url('/assets/styles.css')); ?>">
 </head>
 <body>

@@ -76,7 +76,7 @@
                     <input type="hidden" name="product_id" value="<?php echo (int)$p['id']; ?>">
                     <label>Cantidad</label>
                     <input type="number" min="1" max="<?php echo !empty($p['allow_negative_stock']) ? 9999 : (int)$p['stock']; ?>" value="1" name="qty">
-                    <button type="submit" name="add_cart" value="1">Agregar al carrito</button>
+                    <button type="submit" name="add_cart" value="1" style="margin-top:10px;margin-bottom:10px;">Agregar al carrito</button>
                 </form>
             </div>
         </article>
@@ -161,7 +161,7 @@
                 <input type="hidden" id="mProductId" name="product_id" value="0">
                 <div><label>Cantidad</label></div>
                 <div><input id="mQtyInput" type="number" min="1" value="1" name="qty"></div>
-                <div><button type="submit" name="add_cart" value="1">Agregar al carrito</button></div>
+                <div><button type="submit" name="add_cart" value="1" style="margin-top:10px;margin-bottom:10px;">Agregar al carrito</button></div>
             </form>
             <button class="btn-alt" onclick="closeProductModal()">Cerrar</button>
         </div>

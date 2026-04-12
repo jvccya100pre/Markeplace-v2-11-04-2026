@@ -48,6 +48,15 @@
   - control de stock negativo
   - modo de galería
   - tabla de vendedores
+  - tabla de testimonios
+
+## 8. Testimonios
+
+- Los clientes logueados pueden agregar testimonios desde la web pública en `/testimonial.php?action=create`.
+- Deben incluir un mensaje y una foto obligatoria (sugerencia: "tome una selfie o foto usando el producto").
+- Los testimonios se guardan como pendientes de aprobación.
+- En el panel admin, ve a `/admin/testimonials.php` para ver, aprobar o rechazar testimonios.
+- Los testimonios aprobados se muestran en `/testimonial.php`.
   - relacionar pedidos con vendedores
 
 ## 8. Notas adicionales

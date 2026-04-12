@@ -23,3 +23,14 @@ CREATE TABLE IF NOT EXISTS `demo_markeplacev1_sellers` (
   UNIQUE KEY `idx_username` (`username`),
   UNIQUE KEY `idx_link_token` (`link_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `demo_markeplacev1_testimonials` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `message` TEXT NOT NULL,
+  `photo` VARCHAR(255) NOT NULL,
+  `approved` TINYINT(1) NOT NULL DEFAULT '0',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_approved` (`approved`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
