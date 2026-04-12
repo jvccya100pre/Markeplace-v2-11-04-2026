@@ -8,6 +8,7 @@ $cartCount = count(cart_session_items());
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tu tienda On line</title>
+    <link rel="icon" href="<?php echo esc(app_url('img/company/LogoTuTiendaOnline3.png')); ?>" type="image/png">
     <link rel="stylesheet" href="assets/styles.css">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="assets/app.js" defer></script>
@@ -16,7 +17,10 @@ $cartCount = count(cart_session_items());
 <header class="topbar">
     <div class="container">
         <nav>
-            <strong>Tu tienda On line</strong>
+            <a class="brand" href="<?php echo esc(route_url('home')); ?>" title="Tu tienda On line AA">
+                <img class="brand-icon" src="img/company/LogoTuTiendaOnline3.png" width='45px' height='45px' alt="Logo">
+                <strong>Tu tienda On line</strong>
+            </a>
             <div class="menu-links">
                 <a href="<?php echo esc(route_url('home')); ?>">Inicio</a>
                 <a href="<?php echo esc(route_url('catalog_pdf')); ?>">Descargar catalogo PDF</a>

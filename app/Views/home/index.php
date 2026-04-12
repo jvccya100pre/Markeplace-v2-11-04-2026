@@ -24,6 +24,12 @@
             <a class="btn btn-alt" href="<?php echo esc(route_url('cart')); ?>" style="display:block;text-align:center;padding:10px;">Ver carrito</a>
         </div>
     </form>
+    <?php if (!empty($sellerId)): ?>
+        <div class="panel" style="background:#fff6e8;border:1px solid #f0d7bb; margin-top:10px; padding:12px;">
+            <strong>Comprando a través del vendedor #<?php echo (int)$sellerId; ?>.</strong>
+            <p>El pedido quedará asociado a este vendedor si finalizas la compra.</p>
+        </div>
+    <?php endif; ?>
     <form method="post" style="margin-top:10px;">
         <button class="btn-warn" type="submit" name="clear_cart" value="1">Borrar items</button>
     </form>
@@ -31,18 +37,45 @@
 
 <section class="grid">
     <?php foreach ($products as $p): ?>
+        <?php
+        $images = array_filter(array_map('trim', explode('|', $p['image_path'])));
+        if (count($images) === 0) {
+            $images = array($p['image_path']);
+        }
+        $modalPayload = array(
+            'id' => (int)$p['id'],
+            'images' => array_values($images),
+            'price' => number_format(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price'], 2, '.', ''),
+            'priceWholesale' => isset($p['price_wholesale']) && $p['price_wholesale'] > 0 ? number_format($p['price_wholesale'], 2, '.', '') : '',
+            'showRetail' => isset($p['show_retail']) ? (bool)$p['show_retail'] : true,
+            'showWholesale' => isset($p['show_wholesale']) ? (bool)$p['show_wholesale'] : false,
+            'allowNegative' => isset($p['allow_negative_stock']) ? (bool)$p['allow_negative_stock'] : false,
+            'stock' => (int)$p['stock'],
+            'color' => $p['color'],
+            'code' => $p['internal_code'],
+            'name' => $p['name']
+        );
+        ?>
         <article class="card">
-            <img src="<?php echo esc($p['image_path']); ?>" alt="<?php echo esc($p['name']); ?>" onclick='openProductModal({"image":"<?php echo esc($p['image_path']); ?>","price":"<?php echo number_format($p['price'], 2, '.', ''); ?>","stock":"<?php echo (int)$p['stock']; ?>","color":"<?php echo esc($p['color']); ?>","code":"<?php echo esc($p['internal_code']); ?>","name":"<?php echo esc($p['name']); ?>"})'>
+            <img src="<?php echo esc($images[0]); ?>" alt="<?php echo esc($p['name']); ?>" onclick='openProductModal(<?php echo json_encode($modalPayload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>)'>
             <div class="card-body">
                 <h3><?php echo esc($p['name']); ?></h3>
                 <p><?php echo esc($p['description']); ?></p>
                 <p>Codigo: <?php echo esc($p['internal_code']); ?></p>
                 <p class="stock">Stock: <?php echo (int)$p['stock']; ?></p>
-                <p>Precio: $<?php echo number_format($p['price'], 2); ?></p>
+                <?php if (!empty($p['show_retail'])): ?>
+                    <p>Precio detal: $<?php echo number_format(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price'], 2); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($p['show_wholesale']) && !empty($p['price_wholesale'])): ?>
+                    <p>Precio mayor: $<?php echo number_format($p['price_wholesale'], 2); ?></p>
+                <?php endif; ?>
+                <?php if (!empty($p['allow_negative_stock'])): ?>
+                    <p style="color:#b45d13;">Permite venta en stock negativo</p>
+                <?php endif; ?>
                 <form method="post">
                     <input type="hidden" name="product_id" value="<?php echo (int)$p['id']; ?>">
                     <label>Cantidad</label>
-                    <input type="number" min="1" max="<?php echo (int)$p['stock']; ?>" value="1" name="qty">
+                    <input type="number" min="1" max="<?php echo !empty($p['allow_negative_stock']) ? 9999 : (int)$p['stock']; ?>" value="1" name="qty">
                     <button type="submit" name="add_cart" value="1">Agregar al carrito</button>
                 </form>
             </div>
@@ -105,16 +138,31 @@
 
 <div id="productModal" class="modal">
     <div class="modal-content">
-        <div class="modal-img-box"><img id="mImg" src="" alt="Producto"></div>
+        <div class="modal-img-box">
+            <img id="mImg" src="" alt="Producto">
+            <div class="modal-gallery" id="modalGallery" style="display:none;">
+                <button type="button" onclick="nextModalImage(-1)">&larr;</button>
+                <span id="modalImageIndex">1 / 1</span>
+                <button type="button" onclick="nextModalImage(1)">&rarr;</button>
+            </div>
+            <div class="modal-thumbnails" id="modalThumbnails"></div>
+        </div>
         <div class="modal-text">
             <h3>Detalle</h3>
-            <p>Precio: $<span id="mPrice"></span></p>
+            <p id="modalRetailPrice">Precio detal: $<span id="mPrice"></span></p>
+            <p id="modalWholesalePrice">Precio mayor: $<span id="mPriceWholesale"></span></p>
             <p>Cantidad disponible: <span id="mQty"></span></p>
             <p>Color: <span id="mColor"></span></p>
             <hr>
             <p>Codigo: <span id="mCode"></span></p>
             <p>Nombre: <span id="mName"></span></p>
             <p>Stock: <span id="mStock2"></span></p>
+            <form method="post" style="margin-top:12px;">
+                <input type="hidden" id="mProductId" name="product_id" value="0">
+                <div><label>Cantidad</label></div>
+                <div><input id="mQtyInput" type="number" min="1" value="1" name="qty"></div>
+                <div><button type="submit" name="add_cart" value="1">Agregar al carrito</button></div>
+            </form>
             <button class="btn-alt" onclick="closeProductModal()">Cerrar</button>
         </div>
     </div>

@@ -170,3 +170,45 @@ function set_setting($key, $value)
         $in->execute(array(':k' => $key, ':v' => $value));
     }
 }
+
+function table_exists($name)
+{
+    $stmt = db()->prepare('SHOW TABLES LIKE :table');
+    $stmt->execute(array(':table' => table_name($name)));
+    return (bool)$stmt->fetch();
+}
+
+function column_exists($table, $column)
+{
+    if (!table_exists($table)) {
+        return false;
+    }
+    $sql = 'SHOW COLUMNS FROM ' . table_name($table) . ' LIKE :column';
+    $stmt = db()->prepare($sql);
+    $stmt->execute(array(':column' => $column));
+    return (bool)$stmt->fetch();
+}
+
+function verify_recaptcha($token)
+{
+    global $config;
+    $secret = isset($config['captcha_secret']) ? trim($config['captcha_secret']) : '';
+    if ($secret === '' || $token === '') {
+        return false;
+    }
+    $payload = http_build_query(array('secret' => $secret, 'response' => $token));
+    $context = stream_context_create(array(
+        'http' => array(
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => $payload,
+            'timeout' => 5
+        )
+    ));
+    $response = @file_get_contents('https://www.google.com/recaptcha/api/siteverify', false, $context);
+    if (!$response) {
+        return false;
+    }
+    $json = json_decode($response, true);
+    return isset($json['success']) && $json['success'] === true;
+}

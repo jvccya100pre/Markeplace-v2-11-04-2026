@@ -20,9 +20,9 @@ class ProductModel
 
     public function create($data)
     {
-        $sql = 'INSERT INTO ' . table_name('products') . ' (category_id, name, description, internal_code, stock, color, price, image_path, created_at) VALUES (:c,:n,:d,:code,:s,:color,:p,:img,NOW())';
-        $st = db()->prepare($sql);
-        $st->execute(array(
+        $columns = array('category_id', 'name', 'description', 'internal_code', 'stock', 'color', 'price', 'image_path', 'created_at');
+        $placeholders = array(':c', ':n', ':d', ':code', ':s', ':color', ':p', ':img', 'NOW()');
+        $params = array(
             ':c' => (int)$data['category_id'],
             ':n' => trim($data['name']),
             ':d' => trim($data['description']),
@@ -31,14 +31,33 @@ class ProductModel
             ':color' => trim($data['color']),
             ':p' => (float)$data['price'],
             ':img' => trim($data['image_path']) !== '' ? trim($data['image_path']) : '/logo.jpg'
-        ));
+        );
+
+        if ($this->hasColumn('price_retail')) {
+            $columns[] = 'price_retail';
+            $columns[] = 'price_wholesale';
+            $columns[] = 'show_retail';
+            $columns[] = 'show_wholesale';
+            $columns[] = 'allow_negative_stock';
+            $columns[] = 'gallery_mode';
+            array_splice($placeholders, count($placeholders) - 1, 0, array(':price_retail', ':price_wholesale', ':show_retail', ':show_wholesale', ':allow_negative_stock', ':gallery_mode'));
+            $params[':price_retail'] = isset($data['price_retail']) ? (float)$data['price_retail'] : (float)$data['price'];
+            $params[':price_wholesale'] = isset($data['price_wholesale']) ? (float)$data['price_wholesale'] : 0.00;
+            $params[':show_retail'] = isset($data['show_retail']) ? (int)$data['show_retail'] : 1;
+            $params[':show_wholesale'] = isset($data['show_wholesale']) ? (int)$data['show_wholesale'] : 0;
+            $params[':allow_negative_stock'] = isset($data['allow_negative_stock']) ? (int)$data['allow_negative_stock'] : 0;
+            $params[':gallery_mode'] = isset($data['gallery_mode']) ? trim($data['gallery_mode']) : 'single';
+        }
+
+        $sql = 'INSERT INTO ' . table_name('products') . ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
+        $st = db()->prepare($sql);
+        $st->execute($params);
     }
 
     public function update($id, $data)
     {
-        $sql = 'UPDATE ' . table_name('products') . ' SET category_id=:c, name=:n, description=:d, internal_code=:code, stock=:s, color=:color, price=:p, image_path=:img WHERE id=:id';
-        $st = db()->prepare($sql);
-        $st->execute(array(
+        $columns = array('category_id=:c', 'name=:n', 'description=:d', 'internal_code=:code', 'stock=:s', 'color=:color', 'price=:p', 'image_path=:img');
+        $params = array(
             ':c' => (int)$data['category_id'],
             ':n' => trim($data['name']),
             ':d' => trim($data['description']),
@@ -48,7 +67,31 @@ class ProductModel
             ':p' => (float)$data['price'],
             ':img' => trim($data['image_path']) !== '' ? trim($data['image_path']) : '/logo.jpg',
             ':id' => (int)$id
-        ));
+        );
+
+        if ($this->hasColumn('price_retail')) {
+            $columns[] = 'price_retail=:price_retail';
+            $columns[] = 'price_wholesale=:price_wholesale';
+            $columns[] = 'show_retail=:show_retail';
+            $columns[] = 'show_wholesale=:show_wholesale';
+            $columns[] = 'allow_negative_stock=:allow_negative_stock';
+            $columns[] = 'gallery_mode=:gallery_mode';
+            $params[':price_retail'] = isset($data['price_retail']) ? (float)$data['price_retail'] : (float)$data['price'];
+            $params[':price_wholesale'] = isset($data['price_wholesale']) ? (float)$data['price_wholesale'] : 0.00;
+            $params[':show_retail'] = isset($data['show_retail']) ? (int)$data['show_retail'] : 1;
+            $params[':show_wholesale'] = isset($data['show_wholesale']) ? (int)$data['show_wholesale'] : 0;
+            $params[':allow_negative_stock'] = isset($data['allow_negative_stock']) ? (int)$data['allow_negative_stock'] : 0;
+            $params[':gallery_mode'] = isset($data['gallery_mode']) ? trim($data['gallery_mode']) : 'single';
+        }
+
+        $sql = 'UPDATE ' . table_name('products') . ' SET ' . implode(', ', $columns) . ' WHERE id=:id';
+        $st = db()->prepare($sql);
+        $st->execute($params);
+    }
+
+    private function hasColumn($column)
+    {
+        return column_exists('products', $column);
     }
 
     public function hasOrderItems($id)

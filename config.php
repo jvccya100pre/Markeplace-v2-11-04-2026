@@ -170,3 +170,21 @@ function set_setting($key, $value)
         $in->execute(array(':k' => $key, ':v' => $value));
     }
 }
+
+function table_exists($name)
+{
+    $stmt = db()->prepare('SHOW TABLES LIKE :table');
+    $stmt->execute(array(':table' => table_name($name)));
+    return (bool)$stmt->fetch();
+}
+
+function column_exists($table, $column)
+{
+    if (!table_exists($table)) {
+        return false;
+    }
+    $sql = 'SHOW COLUMNS FROM ' . table_name($table) . ' LIKE :column';
+    $stmt = db()->prepare($sql);
+    $stmt->execute(array(':column' => $column));
+    return (bool)$stmt->fetch();
+}

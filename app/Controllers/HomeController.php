@@ -10,6 +10,10 @@ class HomeController extends Controller
             redirect_to(route_url('home'));
         }
 
+        if (isset($_GET['seller']) && is_numeric($_GET['seller'])) {
+            $_SESSION['seller_id'] = (int)$_GET['seller'];
+        }
+
         if (is_post() && isset($_POST['add_cart'])) {
             if (!auth_user()) {
                 redirect_to(route_url('login', array('next' => route_url('home'))));
@@ -18,7 +22,11 @@ class HomeController extends Controller
             $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
             $qty = isset($_POST['qty']) ? max(1, (int)$_POST['qty']) : 1;
 
-            $sql = 'SELECT id, stock FROM ' . table_name('products') . ' WHERE id = :id LIMIT 1';
+            $selectedColumns = 'id, stock';
+            if (column_exists('products', 'allow_negative_stock')) {
+                $selectedColumns .= ', allow_negative_stock';
+            }
+            $sql = 'SELECT ' . $selectedColumns . ' FROM ' . table_name('products') . ' WHERE id = :id LIMIT 1';
             $stmt = db()->prepare($sql);
             $stmt->execute(array(':id' => $productId));
             $product = $stmt->fetch();
@@ -26,8 +34,12 @@ class HomeController extends Controller
             if ($product) {
                 $items = cart_session_items();
                 $existing = isset($items[$productId]) ? (int)$items[$productId] : 0;
-                $newQty = min((int)$product['stock'], $existing + $qty);
-                $items[$productId] = $newQty;
+                $allowNegative = !empty($product['allow_negative_stock']);
+                if ($allowNegative) {
+                    $items[$productId] = $existing + $qty;
+                } else {
+                    $items[$productId] = min((int)$product['stock'], $existing + $qty);
+                }
                 cart_set_items($items);
             }
 
@@ -79,7 +91,12 @@ class HomeController extends Controller
         $totalItems = $totalRow ? (int)$totalRow['c'] : 0;
         $totalPages = max(1, (int)ceil($totalItems / $perPage));
 
-        $listSql = 'SELECT p.*, c.name AS category_name FROM ' . table_name('products') . ' p INNER JOIN ' . table_name('categories') . ' c ON c.id = p.category_id' . $where . ' ORDER BY p.id DESC LIMIT ' . (int)$offset . ', ' . (int)$perPage;
+        $productColumns = 'p.*';
+        if (column_exists('products', 'price_retail')) {
+            $productColumns = 'p.*, p.price_retail, p.price_wholesale, p.show_retail, p.show_wholesale, p.allow_negative_stock, p.gallery_mode';
+        }
+
+        $listSql = 'SELECT ' . $productColumns . ', c.name AS category_name FROM ' . table_name('products') . ' p INNER JOIN ' . table_name('categories') . ' c ON c.id = p.category_id' . $where . ' ORDER BY p.id DESC LIMIT ' . (int)$offset . ', ' . (int)$perPage;
         $listSt = db()->prepare($listSql);
         $listSt->execute($params);
         $products = $listSt->fetchAll();
@@ -90,10 +107,12 @@ class HomeController extends Controller
         $cartTotal = 0;
         if (count($cartItems)) {
             $ids = implode(',', array_map('intval', array_keys($cartItems)));
-            $priceRows = db()->query('SELECT id, price FROM ' . table_name('products') . ' WHERE id IN (' . $ids . ')')->fetchAll();
+            $priceSql = 'SELECT id, price' . (column_exists('products', 'price_retail') ? ', price_retail' : '') . ' FROM ' . table_name('products') . ' WHERE id IN (' . $ids . ')';
+            $priceRows = db()->query($priceSql)->fetchAll();
             foreach ($priceRows as $r) {
                 $id = (int)$r['id'];
-                $cartTotal += ((float)$r['price']) * (int)$cartItems[$id];
+                $unitPrice = isset($r['price_retail']) && $r['price_retail'] > 0 ? $r['price_retail'] : $r['price'];
+                $cartTotal += ((float)$unitPrice) * (int)$cartItems[$id];
             }
         }
 
@@ -104,7 +123,8 @@ class HomeController extends Controller
             'search' => $search,
             'page' => $page,
             'totalPages' => $totalPages,
-            'cartTotal' => $cartTotal
+            'cartTotal' => $cartTotal,
+            'sellerId' => isset($_SESSION['seller_id']) ? (int)$_SESSION['seller_id'] : 0
         ));
     }
 }

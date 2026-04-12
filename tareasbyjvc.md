@@ -1,32 +1,64 @@
-Mejoras de la web.
+# Instrucciones iniciales - tareasbyjvc.md
 
-1- El administrador puede crear un link de ventas. 
-    Explicacion: la idea de negocio es "Dueño de tienda" consigue un "vendedor" el registra en la web al vendedor con "correo usuario" el vendedor da un "link (enlace unico con el ID del vendedor)" a un "comprador" cuando el comprador realiza la compra en la web le envia un correo con el correo del "comprador" el "Dueño de tienda" asigna el % de venta a su "vendedor" y el correo llega con lo ganado por venta realizada.
+Este documento lista las mejoras prioritarias para la tienda web y describe el comportamiento esperado de cada una.
 
-2- Permitir ventas en negativo
-    Explicacion: en la tienda fisica hay "X" producto pero este queda en "0" en stock por que se agotaron, quiero que el "item" al agotarse avise al administrador via correo y este decida si aumentar la cantidad del  produto o seguir vendiendo a numeros "negativos" por que a veces llega el Item pero este no esta actualizado el monto en el sistema.
+## Objetivo
 
-3- En el panel admin cambiar input "Ruta imagen" a subir archivos "jpg,png,jpeg" desde ordenador a la URL "/img/".
+Convertir los requerimientos en tareas claras para el desarrollo y la revisión.
 
-4- Verificar que el cliente "no suba sus propios items para vender"
+## Tareas
 
-5- Cada item podra tener "2" precios al detal y al mayor visibles por los "compradores".
+1. Crear link de ventas para vendedores
+   - El administrador registra vendedores con correo/usuario.
+   - El vendedor comparte un enlace único con su ID.
+   - Cuando un comprador compra desde ese enlace, el sistema envía un correo con los datos del comprador.
+   - El dueño de tienda asigna el porcentaje de venta al vendedor y el correo informa lo ganado por la venta.
 
-    el administrador en el panel podra activar o desactivar ventas al "mayor" mediante "input='radio' (on/off)". 
+2. Permitir ventas en negativo
+   - Si un producto está agotado en stock, el sistema debe notificar al administrador por correo.
+   - El administrador decide si aumenta la cantidad o permite seguir vendiendo en stock negativo.
 
-    el administrador en el panel podra activar o desactivar ventas al "detal" mediante "input='radio' (on/off)". 
+3. Subir imágenes desde el panel admin
+   - Cambiar el campo de texto "Ruta imagen" por un uploader de archivos.
+   - Aceptar formatos jpg, png y jpeg.
+   - Guardar las imágenes en `/img/`.
 
-6- al hacer click en la imagen agregar cantidad de items que se agregaran al carrito
+4. Restringir carga de items por clientes
+   - Verificar que los clientes no puedan subir sus propios productos para vender.
 
-7- En la foto despues de dar click en la imagen mejorar el Zoom hacer que se mueva el zoon conforme se desplaza el mause.
+5. Doble precio por item (detal y mayor)
+   - Cada producto puede tener precio al detal y precio al mayor visibles para compradores.
+   - El administrador puede activar/desactivar ventas al mayor con un radio on/off.
+   - El administrador puede activar/desactivar ventas al detal con un radio on/off.
 
-8- En el panel administrativo el "Dueño de tienda" Activara mediante un select "modo carousel" o "modo una sola foto", el modo  "modo carousel" funcionara para items de diferentes modelos y colores mientras el "modo una sola foto" es para items de una sola foto, que en la vista publica cambie segun selector de modos del administrador. 
-que en la mini imagen salga las flechas derecha e izquierda, que al hacer click en la imagen si es "modo carousel" abajo de la imagen aparezcan otro minicarousel tipo "visor de fotos de whatsapp"
+6. Agregar cantidad desde la imagen
+   - Al hacer clic en la imagen de un producto, permitir especificar la cantidad que se agregará al carrito.
 
-9- Extraer el archivo ".sql"
+7. Mejorar el zoom de imagen
+   - Después de hacer clic en la imagen, el zoom debe seguir el movimiento del mouse.
 
-10- Realizar una Guia de USO de la Aplicacion web
+8. Modo de galería de imágenes en admin
+   - En el panel administrativo, el dueño puede seleccionar "modo carousel" o "modo una sola foto".
+   - "Modo carousel" es para items con múltiples modelos o colores.
+   - "Modo una sola foto" es para items con una sola imagen.
+   - En la vista pública, el comportamiento debe cambiar según el selector del administrador.
+   - Si está en modo carousel, mostrar flechas izquierda/derecha y un mini visor tipo WhatsApp.
 
-11- Agregar "recaptcha de google" al formulario de login en la carpeta "/admin/login.php"
+9. Extraer el archivo `.sql`
+   - Generar y/o documentar la exportación de la base de datos en `.sql`.
 
+10. Crear guía de uso
+   - Realizar una guía de uso para la aplicación web.
 
+11. Agregar reCAPTCHA en admin/login.php
+   - Incluir Google reCAPTCHA en el formulario de login de `/admin/login.php`.
+
+12. Icono de pestaña y navbar
+   - Colocar favicon usando `/img/company/LogoTuTiendaOnline3.png`.
+   - Mostrar el mismo icono en el navbar superior izquierdo.
+
+## Siguiente paso sugerido
+
+1. Revisar la estructura actual de administración y producto.
+2. Seleccionar la tarea más urgente para implementar primero.
+3. Realizar un branch o copia de seguridad antes de cambios significativos.

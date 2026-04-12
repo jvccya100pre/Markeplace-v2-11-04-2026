@@ -17,15 +17,20 @@ class LoginController extends BaseController
         if (is_post()) {
             $email = isset($_POST['email']) ? trim($_POST['email']) : '';
             $password = isset($_POST['password']) ? $_POST['password'] : '';
-            $user = $model->findAdminByEmail($email);
+            $captchaToken = isset($_POST['g-recaptcha-response']) ? trim($_POST['g-recaptcha-response']) : '';
 
-            if ($user && $user['password_hash'] === sha1($password)) {
-                $_SESSION['admin'] = array('id' => $user['id'], 'name' => $user['full_name'], 'email' => $user['email']);
-                $_SESSION['user'] = $_SESSION['admin'];
-                redirect_to(app_url('/index.php'));
+            if (!empty($config['captcha_public']) && !verify_recaptcha($captchaToken)) {
+                $error = 'Verifica el captcha de Google antes de continuar.';
+            } else {
+                $user = $model->findAdminByEmail($email);
+                if ($user && $user['password_hash'] === sha1($password)) {
+                    $_SESSION['admin'] = array('id' => $user['id'], 'name' => $user['full_name'], 'email' => $user['email']);
+                    $_SESSION['user'] = $_SESSION['admin'];
+                    redirect_to(app_url('/index.php'));
+                }
+
+                $error = 'Credenciales invalidas';
             }
-
-            $error = 'Credenciales invalidas';
         }
 
         $this->render('login', array('error' => $error), false);
