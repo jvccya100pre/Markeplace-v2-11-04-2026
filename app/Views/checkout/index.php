@@ -11,12 +11,14 @@
                 <option value="paypal">Paypal</option>
                 <option value="binance">Binance</option>
             </select>
+            <?php if ($hasDelivery): ?>
             <label>Metodo de entrega</label>
             <select name="delivery_method" required>
-                <option value="encomienda">Encomienda</option>
                 <option value="personal">Personal</option>
-                <option value="acordar con el vendedor">Acordar con el vendedor</option>
+                <option value="encomienda">Encomienda</option>
+                <option value="delivery">Delivery</option>
             </select>
+            <?php endif; ?>
             <label>Notas</label>
             <textarea name="notes" rows="4"></textarea>
             <button type="submit">Crear pedido</button>

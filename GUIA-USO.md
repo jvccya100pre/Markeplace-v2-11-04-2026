@@ -24,7 +24,13 @@
 - El sistema genera un enlace único para cada vendedor.
 - Cuando un comprador entra con ese enlace (`/?seller=ID`), se guarda la referencia.
 
-## 4. Compras y carrito
+## 4. Servicio de Delivery
+
+- En el admin, al editar un producto, marca "Prestar servicio Delivery" para habilitar opciones de entrega.
+- En la tienda pública, si el carrito incluye productos con delivery habilitado, se muestra un selector de método de entrega: Personal, Encomienda o Delivery.
+- El método elegido se guarda en el pedido para coordinar con el vendedor.
+
+## 5. Compras y carrito
 
 - En la tienda pública, haz clic en la imagen del producto para abrir el modal.
 - Dentro del modal puedes seleccionar cantidad y agregar al carrito.
@@ -49,6 +55,7 @@
   - modo de galería
   - tabla de vendedores
   - tabla de testimonios
+  - delivery por producto y método de entrega en pedidos
 
 ## 8. Testimonios
 

@@ -40,6 +40,7 @@
         <div><label><input type="checkbox" name="show_retail" value="1" <?php echo $formData['show_retail'] ? 'checked' : ''; ?>> Mostrar precio detall</label></div>
         <div><label><input type="checkbox" name="show_wholesale" value="1" <?php echo $formData['show_wholesale'] ? 'checked' : ''; ?>> Mostrar precio mayor</label></div>
         <div><label><input type="checkbox" name="allow_negative_stock" value="1" <?php echo $formData['allow_negative_stock'] ? 'checked' : ''; ?>> Permitir ventas en negativo</label></div>
+        <div><label><input type="checkbox" name="delivery_enabled" value="1" <?php echo $formData['delivery_enabled'] ? 'checked' : ''; ?>> Prestar servicio Delivery</label></div>
         <div>
             <label>Modo de imagen</label>
             <select name="gallery_mode">

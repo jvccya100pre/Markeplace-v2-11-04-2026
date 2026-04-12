@@ -40,13 +40,15 @@ class ProductModel
             $columns[] = 'show_wholesale';
             $columns[] = 'allow_negative_stock';
             $columns[] = 'gallery_mode';
-            array_splice($placeholders, count($placeholders) - 1, 0, array(':price_retail', ':price_wholesale', ':show_retail', ':show_wholesale', ':allow_negative_stock', ':gallery_mode'));
+            $columns[] = 'delivery_enabled';
+            array_splice($placeholders, count($placeholders) - 1, 0, array(':price_retail', ':price_wholesale', ':show_retail', ':show_wholesale', ':allow_negative_stock', ':gallery_mode', ':delivery_enabled'));
             $params[':price_retail'] = isset($data['price_retail']) ? (float)$data['price_retail'] : (float)$data['price'];
             $params[':price_wholesale'] = isset($data['price_wholesale']) ? (float)$data['price_wholesale'] : 0.00;
             $params[':show_retail'] = isset($data['show_retail']) ? (int)$data['show_retail'] : 1;
             $params[':show_wholesale'] = isset($data['show_wholesale']) ? (int)$data['show_wholesale'] : 0;
             $params[':allow_negative_stock'] = isset($data['allow_negative_stock']) ? (int)$data['allow_negative_stock'] : 0;
             $params[':gallery_mode'] = isset($data['gallery_mode']) ? trim($data['gallery_mode']) : 'single';
+            $params[':delivery_enabled'] = isset($data['delivery_enabled']) ? (int)$data['delivery_enabled'] : 0;
         }
 
         $sql = 'INSERT INTO ' . table_name('products') . ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
@@ -76,12 +78,14 @@ class ProductModel
             $columns[] = 'show_wholesale=:show_wholesale';
             $columns[] = 'allow_negative_stock=:allow_negative_stock';
             $columns[] = 'gallery_mode=:gallery_mode';
+            $columns[] = 'delivery_enabled=:delivery_enabled';
             $params[':price_retail'] = isset($data['price_retail']) ? (float)$data['price_retail'] : (float)$data['price'];
             $params[':price_wholesale'] = isset($data['price_wholesale']) ? (float)$data['price_wholesale'] : 0.00;
             $params[':show_retail'] = isset($data['show_retail']) ? (int)$data['show_retail'] : 1;
             $params[':show_wholesale'] = isset($data['show_wholesale']) ? (int)$data['show_wholesale'] : 0;
             $params[':allow_negative_stock'] = isset($data['allow_negative_stock']) ? (int)$data['allow_negative_stock'] : 0;
             $params[':gallery_mode'] = isset($data['gallery_mode']) ? trim($data['gallery_mode']) : 'single';
+            $params[':delivery_enabled'] = isset($data['delivery_enabled']) ? (int)$data['delivery_enabled'] : 0;
         }
 
         $sql = 'UPDATE ' . table_name('products') . ' SET ' . implode(', ', $columns) . ' WHERE id=:id';

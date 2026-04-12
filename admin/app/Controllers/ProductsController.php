@@ -90,6 +90,7 @@ class ProductsController extends BaseController
         $data['show_retail'] = isset($data['show_retail']) ? 1 : 0;
         $data['show_wholesale'] = isset($data['show_wholesale']) ? 1 : 0;
         $data['allow_negative_stock'] = isset($data['allow_negative_stock']) ? 1 : 0;
+        $data['delivery_enabled'] = isset($data['delivery_enabled']) ? 1 : 0;
         $data['gallery_mode'] = isset($data['gallery_mode']) && $data['gallery_mode'] === 'carousel' ? 'carousel' : 'single';
         $currentPath = isset($data['current_image_path']) ? trim($data['current_image_path']) : '';
         if ($editingProduct && isset($editingProduct['image_path'])) {

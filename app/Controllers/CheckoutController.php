@@ -12,20 +12,24 @@ class CheckoutController extends Controller
             redirect_to(route_url('cart'));
         }
 
+        $ids = implode(',', array_map('intval', array_keys($items)));
+        $productColumns = 'id, price, stock';
+        if (column_exists('products', 'delivery_enabled')) {
+            $productColumns .= ', delivery_enabled';
+        }
+        $productSql = 'SELECT ' . $productColumns . ' FROM ' . table_name('products') . ' WHERE id IN (' . $ids . ')';
+        $products = db()->query($productSql)->fetchAll();
+
+        $hasDelivery = false;
+        foreach ($products as $p) {
+            if (isset($p['delivery_enabled']) && $p['delivery_enabled']) {
+                $hasDelivery = true;
+                break;
+            }
+        }
+
         $message = '';
         if (is_post()) {
-            $currentUser = auth_user();
-            $payment = isset($_POST['payment_method']) ? trim($_POST['payment_method']) : '';
-            $delivery = isset($_POST['delivery_method']) ? trim($_POST['delivery_method']) : '';
-            $notes = isset($_POST['notes']) ? trim($_POST['notes']) : '';
-
-            $ids = implode(',', array_map('intval', array_keys($items)));
-            $productColumns = 'id, price, stock';
-            if (column_exists('products', 'allow_negative_stock')) {
-                $productColumns .= ', allow_negative_stock';
-            }
-            $productSql = 'SELECT ' . $productColumns . ' FROM ' . table_name('products') . ' WHERE id IN (' . $ids . ')';
-            $products = db()->query($productSql)->fetchAll();
 
             $total = 0;
             foreach ($products as $p) {
@@ -33,16 +37,20 @@ class CheckoutController extends Controller
                 $total += $qty * (float)$p['price'];
             }
 
-            $orderColumns = 'user_id, total, status, payment_method, delivery_method, notes, created_at';
-            $orderValues = ':u, :t, :s, :pm, :dm, :n, NOW()';
+            $orderColumns = 'user_id, total, status, payment_method, notes, created_at';
+            $orderValues = ':u, :t, :s, :pm, :n, NOW()';
             $params = array(
                 ':u' => $currentUser['id'],
                 ':t' => $total,
                 ':s' => 'pendiente',
                 ':pm' => $payment,
-                ':dm' => $delivery,
                 ':n' => $notes
             );
+            if (column_exists('orders', 'delivery_method')) {
+                $orderColumns .= ', delivery_method';
+                $orderValues .= ', :dm';
+                $params[':dm'] = $delivery;
+            }
             if (column_exists('orders', 'seller_id') && isset($_SESSION['seller_id']) && (int)$_SESSION['seller_id'] > 0) {
                 $orderColumns .= ', seller_id';
                 $orderValues .= ', :seller_id';
@@ -82,6 +90,6 @@ class CheckoutController extends Controller
             $message = 'Pedido registrado correctamente. Tu numero de pedido es #' . $orderId;
         }
 
-        $this->render('checkout/index', array('message' => $message));
+        $this->render('checkout/index', array('message' => $message, 'hasDelivery' => $hasDelivery));
     }
 }
