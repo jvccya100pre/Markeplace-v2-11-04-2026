@@ -22,6 +22,37 @@ class CategoryModel
         return $st->fetch();
     }
 
+    public function getVariosCategoryId()
+    {
+        $sql = 'SELECT id FROM ' . table_name('categories') . ' WHERE LOWER(name) = :name LIMIT 1';
+        $st = db()->prepare($sql);
+        $st->execute(array(':name' => 'varios'));
+        $row = $st->fetch();
+        if ($row) {
+            return (int)$row['id'];
+        }
+
+        $sql = 'INSERT INTO ' . table_name('categories') . ' (name, is_active) VALUES (:name, 1)';
+        $st = db()->prepare($sql);
+        $st->execute(array(':name' => 'Varios'));
+        return (int)db()->lastInsertId();
+    }
+
+    public function reassignProductsToCategory($fromCategoryId, $toCategoryId)
+    {
+        $sql = 'UPDATE ' . table_name('products') . ' SET category_id = :toId WHERE category_id = :fromId';
+        $st = db()->prepare($sql);
+        $st->execute(array(':toId' => (int)$toCategoryId, ':fromId' => (int)$fromCategoryId));
+    }
+
+    public function reassignUncategorizedProductsToVarios()
+    {
+        $variosId = $this->getVariosCategoryId();
+        $sql = 'UPDATE ' . table_name('products') . ' SET category_id = :toId WHERE category_id IS NULL OR category_id = 0 OR category_id NOT IN (SELECT id FROM ' . table_name('categories') . ')';
+        $st = db()->prepare($sql);
+        $st->execute(array(':toId' => (int)$variosId));
+    }
+
     public function update($id, $name)
     {
         $sql = 'UPDATE ' . table_name('categories') . ' SET name = :name WHERE id = :id';
