@@ -85,9 +85,9 @@
                 <td><?php echo esc($r['internal_code']); ?></td>
                 <td><?php echo (int)$r['stock']; ?></td>
                 <td>
-                    <?php echo '$' . number_format(isset($r['price_retail']) && $r['price_retail'] > 0 ? $r['price_retail'] : $r['price'], 2); ?><br>
+                    <?php echo 'VES ' . number_format(isset($r['price_retail']) && $r['price_retail'] > 0 ? $r['price_retail'] : $r['price'], 2); ?><br>
                     <?php if (!empty($r['show_wholesale']) && !empty($r['price_wholesale'])): ?>
-                        <small>Mayor: $<?php echo number_format($r['price_wholesale'], 2); ?></small>
+                        <small>Mayor: VES <?php echo number_format($r['price_wholesale'], 2); ?></small>
                     <?php endif; ?>
                 </td>
                 <td>

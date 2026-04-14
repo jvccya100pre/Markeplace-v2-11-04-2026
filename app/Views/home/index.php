@@ -14,7 +14,7 @@
             <input type="text" name="search" value="<?php echo esc($search); ?>">
         </div>
         <div>
-            <label>Total en carrito ($)</label>
+            <label>Total en carrito (VES)</label>
             <input type="text" value="<?php echo number_format($cartTotal, 2, '.', ''); ?>" readonly onclick="window.location.href='<?php echo esc(route_url('cart')); ?>'" title="Haz clic para ver el carrito" style="cursor:pointer;">
         </div>
         <div>
@@ -64,10 +64,10 @@
                 <p>Codigo: <?php echo esc($p['internal_code']); ?></p>
                 <p class="stock">Stock: <?php echo (int)$p['stock']; ?></p>
                 <?php if (!empty($p['show_retail'])): ?>
-                    <p>Precio detal: $<?php echo number_format(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price'], 2); ?></p>
+                    <p>Precio detal: VES <?php echo number_format(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price'], 2); ?></p>
                 <?php endif; ?>
                 <?php if (!empty($p['show_wholesale']) && !empty($p['price_wholesale'])): ?>
-                    <p>Precio mayor: $<?php echo number_format($p['price_wholesale'], 2); ?></p>
+                    <p>Precio mayor: VES <?php echo number_format($p['price_wholesale'], 2); ?></p>
                 <?php endif; ?>
                 <?php if (!empty($p['allow_negative_stock'])): ?>
                     <p style="color:#b45d13;">Permite venta en stock negativo</p>
@@ -149,8 +149,8 @@
         </div>
         <div class="modal-text">
             <h3>Detalle</h3>
-            <p id="modalRetailPrice">Precio detal: $<span id="mPrice"></span></p>
-            <p id="modalWholesalePrice">Precio mayor: $<span id="mPriceWholesale"></span></p>
+            <p id="modalRetailPrice">Precio detal: VES <span id="mPrice"></span></p>
+            <p id="modalWholesalePrice">Precio mayor: VES <span id="mPriceWholesale"></span></p>
             <p>Cantidad disponible: <span id="mQty"></span></p>
             <p>Color: <span id="mColor"></span></p>
             <hr>

@@ -5,7 +5,7 @@
         <div><strong>Visita unica por IP</strong><p><?php echo $uniqueIp; ?></p></div>
         <div><strong>Usuarios registrados</strong><p><?php echo $totalUsers; ?></p></div>
         <div><strong>Pedidos realizados</strong><p><?php echo $totalOrders; ?></p></div>
-        <div><strong>Total ganancias del mes</strong><p>$<?php echo number_format($monthGain, 2); ?></p></div>
+        <div><strong>Total ganancias del mes</strong><p>VES <?php echo number_format($monthGain, 2); ?></p></div>
     </div>
 </section>
 

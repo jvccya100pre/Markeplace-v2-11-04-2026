@@ -10,7 +10,7 @@
                 <td>#<?php echo (int)$r['id']; ?></td>
                 <td><?php echo esc($r['full_name']); ?></td>
                 <td><?php echo esc($r['email']); ?></td>
-                <td>$<?php echo number_format($r['total'], 2); ?></td>
+                <td>VES <?php echo number_format($r['total'], 2); ?></td>
                 <td><?php echo esc($r['payment_method']); ?></td>
                 <td><?php echo esc($r['delivery_method']); ?></td>
                 <?php if ($showSeller): ?><td><?php echo esc($r['seller_name']); ?></td><?php endif; ?>

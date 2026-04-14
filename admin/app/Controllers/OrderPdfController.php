@@ -15,7 +15,7 @@ class OrderPdfController extends BaseController
         }
 
         $items = $model->orderItems($id);
-        $txt = 'Pedido #' . $order['id'] . ' Cliente: ' . $order['full_name'] . ' Correo: ' . $order['email'] . ' Total: $' . number_format($order['total'], 2) . ' ';
+        $txt = 'Pedido #' . $order['id'] . ' Cliente: ' . $order['full_name'] . ' Correo: ' . $order['email'] . ' Total: VES ' . number_format($order['total'], 2) . ' ';
         foreach ($items as $it) {
             $txt .= $it['name'] . ' x' . $it['quantity'] . ' ';
         }

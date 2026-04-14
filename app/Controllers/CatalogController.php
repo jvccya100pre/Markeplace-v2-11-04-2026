@@ -13,7 +13,7 @@ class CatalogController
         $lines[] = 'Fecha: ' . date('d/m/Y H:i');
         $lines[] = '----------------------------------------';
         foreach ($products as $p) {
-            $lines[] = $p['name'] . ' | ' . $p['internal_code'] . ' | Stock: ' . $p['stock'] . ' | $' . number_format($p['price'], 2);
+            $lines[] = $p['name'] . ' | ' . $p['internal_code'] . ' | Stock: ' . $p['stock'] . ' | VES ' . number_format($p['price'], 2);
         }
 
         $textOps = array();
