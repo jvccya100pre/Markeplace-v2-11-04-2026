@@ -15,8 +15,8 @@ $config = array(
         'prefix' => 'demo_markeplacev1_'
     ),
     'base_path' => '',
-    'captcha_public' => '6Ld5U8UUAAAAAM_Ghlp4ocZor4UKtBbKI2HW_fa_',
-    'captcha_secret' => '6Ld5U8UUAAAAAFk_ZIltFB--mM2ySim8LHW1h1CP',
+    'captcha_public' => '6LcPmbcsAAAAAP1EBl_9o7-EKNYoSP9XwdMj09ri',
+    'captcha_secret' => '6LcPmbcsAAAAAGxREm0qnvELLLEmB-cQ0fZpuT6N',
     'google_oauth_client_id' => '',
     'google_oauth_client_secret' => ''
 );
@@ -223,4 +223,35 @@ function column_exists($table, $column)
     $stmt = db()->prepare($sql);
     $stmt->execute(array(':column' => $column));
     return (bool)$stmt->fetch();
+}
+
+function get_current_currency()
+{
+    return isset($_SESSION['currency']) ? $_SESSION['currency'] : 'VES';
+}
+
+function get_exchange_rate($date = null)
+{
+    if (!$date) {
+        $date = date('Y-m-d');
+    }
+    $sql = 'SELECT usd_to_ves FROM ' . table_name('exchange_rates') . ' WHERE date = :date LIMIT 1';
+    $st = db()->prepare($sql);
+    $st->execute(array(':date' => $date));
+    $row = $st->fetch();
+    return $row ? (float)$row['usd_to_ves'] : 1.0; // default 1 if no rate
+}
+
+function format_price($price_in_ves, $currency = null)
+{
+    if ($currency === null) {
+        $currency = get_current_currency();
+    }
+    if ($currency === 'USD') {
+        $rate = get_exchange_rate();
+        $price = $price_in_ves / $rate;
+        return '$' . number_format($price, 2);
+    } else {
+        return 'VES ' . number_format($price_in_ves, 2);
+    }
 }

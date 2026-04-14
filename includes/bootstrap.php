@@ -11,3 +11,11 @@ if (!function_exists('route_url')) {
 }
 
 track_visit(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/');
+
+// Handle currency selection
+if (isset($_POST['currency']) && in_array($_POST['currency'], ['USD', 'VES'])) {
+    $_SESSION['currency'] = $_POST['currency'];
+    // Redirect to remove POST data
+    header('Location: ' . $_SERVER['REQUEST_URI']);
+    exit;
+}

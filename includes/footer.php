@@ -14,7 +14,7 @@
             <h3>Redes Sociales</h3>
             <div class="socials">
                 <!-- <a href="#" target="_blank">Facebook</a> -->
-                <a href="@tutiendaonlinelq" target="_blank">Instagram</a>
+                <a href="http://instagram.com/tutiendaonlinelq" target="_blank">Instagram</a>
             </div>
         </section>
     </div>

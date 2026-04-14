@@ -18,6 +18,7 @@ $router->get('google_oauth_callback', array('AuthController', 'googleOauthCallba
 $router->get('cart', array('CartController', 'index'));
 $router->get('checkout', array('CheckoutController', 'index'));
 $router->get('catalog_pdf', array('CatalogController', 'download'));
+$router->get('catalog_pdf2', array('CatalogController', 'download2'));
 $router->get('send_contact', array('ContactController', 'send'));
 
 $route = isset($_GET['r']) ? trim($_GET['r']) : 'home';

@@ -15,8 +15,8 @@ $config = array(
         'prefix' => 'demo_markeplacev1_'
     ),
     'base_path' => '',
-    'captcha_public' => '6Ld5U8UUAAAAAM_Ghlp4ocZor4UKtBbKI2HW_fa_',
-    'captcha_secret' => '6Ld5U8UUAAAAAFk_ZIltFB--mM2ySim8LHW1h1CP'
+    'captcha_public' => '6LcPmbcsAAAAAP1EBl_9o7-EKNYoSP9XwdMj09ri',
+    'captcha_secret' => '6LcPmbcsAAAAAGxREm0qnvELLLEmB-cQ0fZpuT6N'
 );
 
 function db()

@@ -56,3 +56,32 @@
         </div>
     </form>
 </section>
+
+<section class="panel">
+    <h2>Tasa de cambio USD a VES</h2>
+    <?php if ($message !== '' && strpos($message, 'Tasa') !== false): ?>
+        <p><?php echo esc($message); ?></p>
+    <?php endif; ?>
+    <form method="post">
+        <div class="filters">
+            <div><label>Valor USD a VES (hoy)</label><input type="number" step="0.01" name="usd_to_ves" value="<?php echo $currentRate ? number_format($currentRate, 2) : ''; ?>" required></div>
+            <div><button type="submit" name="save_exchange" value="1">Guardar tasa</button></div>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Generar Backup</h2>
+    <form method="post">
+        <p>Descargar un backup completo de la base de datos en formato SQL.</p>
+        <button type="submit" name="generate_backup" value="1">Generar Backup</button>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Limpiar Productos</h2>
+    <form method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar todos los productos? Esta acción no se puede deshacer.');">
+        <p>Eliminar todos los productos de la base de datos.</p>
+        <button type="submit" name="clean_products" value="1" style="background:red;color:white;">Limpiar Productos</button>
+    </form>
+</section>

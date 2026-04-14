@@ -30,6 +30,12 @@ $cartCount = count(cart_session_items());
                 <img class="brand-icon" src="img/company/LogoTuTiendaOnline3.png" width='45px' height='45px' alt="Logo">
                 <strong>Tu tienda On line</strong>
             </a>
+            <div class="currency-selector">
+                <select id="currency-select">
+                    <option value="VES" <?php echo (isset($_SESSION['currency']) && $_SESSION['currency'] === 'VES') ? 'selected' : ''; ?>>VES</option>
+                    <option value="USD" <?php echo (isset($_SESSION['currency']) && $_SESSION['currency'] === 'USD') ? 'selected' : ''; ?>>USD</option>
+                </select>
+            </div>
             <button class="burger-menu" type="button" aria-label="Toggle menu">
                 <span></span>
                 <span></span>

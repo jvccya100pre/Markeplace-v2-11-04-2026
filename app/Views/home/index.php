@@ -14,8 +14,8 @@
             <input type="text" name="search" value="<?php echo esc($search); ?>">
         </div>
         <div>
-            <label>Total en carrito (VES)</label>
-            <input type="text" value="<?php echo number_format($cartTotal, 2, '.', ''); ?>" readonly onclick="window.location.href='<?php echo esc(route_url('cart')); ?>'" title="Haz clic para ver el carrito" style="cursor:pointer;">
+            <label>Total en carrito (<?php echo get_current_currency(); ?>)</label>
+            <input type="text" value="<?php echo number_format(get_current_currency() === 'USD' ? $cartTotal / get_exchange_rate() : $cartTotal, 2, '.', ''); ?>" readonly onclick="window.location.href='<?php echo esc(route_url('cart')); ?>'" title="Haz clic para ver el carrito" style="cursor:pointer;">
         </div>
         <div>
             <button type="submit">Filtrar</button>
@@ -45,8 +45,8 @@
         $modalPayload = array(
             'id' => (int)$p['id'],
             'images' => array_values($images),
-            'price' => number_format(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price'], 2, '.', ''),
-            'priceWholesale' => isset($p['price_wholesale']) && $p['price_wholesale'] > 0 ? number_format($p['price_wholesale'], 2, '.', '') : '',
+            'price' => format_price(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price']),
+            'priceWholesale' => isset($p['price_wholesale']) && $p['price_wholesale'] > 0 ? format_price($p['price_wholesale']) : '',
             'showRetail' => isset($p['show_retail']) ? (bool)$p['show_retail'] : true,
             'showWholesale' => isset($p['show_wholesale']) ? (bool)$p['show_wholesale'] : false,
             'allowNegative' => isset($p['allow_negative_stock']) ? (bool)$p['allow_negative_stock'] : false,
@@ -64,10 +64,10 @@
                 <p>Codigo: <?php echo esc($p['internal_code']); ?></p>
                 <p class="stock">Stock: <?php echo (int)$p['stock']; ?></p>
                 <?php if (!empty($p['show_retail'])): ?>
-                    <p>Precio detal: VES <?php echo number_format(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price'], 2); ?></p>
+                    <p>Precio detal: <?php echo format_price(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price']); ?></p>
                 <?php endif; ?>
                 <?php if (!empty($p['show_wholesale']) && !empty($p['price_wholesale'])): ?>
-                    <p>Precio mayor: VES <?php echo number_format($p['price_wholesale'], 2); ?></p>
+                    <p>Precio mayor: <?php echo format_price($p['price_wholesale']); ?></p>
                 <?php endif; ?>
                 <?php if (!empty($p['allow_negative_stock'])): ?>
                     <p style="color:#b45d13;">Permite venta en stock negativo</p>

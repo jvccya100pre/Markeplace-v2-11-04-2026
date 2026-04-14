@@ -12,3 +12,7 @@
 
 7- Acomodar el link de instagram que apunte a "http://instagram.com/tutiendaonlinelq"
 
+8- Agregar Funcion "Generar BackUp" de mis tablas mysql en panel administrativo.
+
+9- Agregar Funcion "Limpiar Productos" de mis tabla mysql en panel administrativo.
+

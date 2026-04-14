@@ -216,4 +216,21 @@ document.addEventListener('DOMContentLoaded', function () {
             menu.classList.toggle('active');
         });
     }
+
+    // Currency selector
+    var currencySelect = document.getElementById('currency-select');
+    if (currencySelect) {
+        currencySelect.addEventListener('change', function () {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = window.location.href;
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'currency';
+            input.value = this.value;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
 });

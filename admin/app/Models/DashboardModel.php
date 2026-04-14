@@ -56,4 +56,25 @@ class DashboardModel
             'currentPaypal' => get_setting('paypal_email'),
         );
     }
+
+    public function getExchangeRate($date = null)
+    {
+        if (!$date) {
+            $date = date('Y-m-d');
+        }
+        $sql = 'SELECT usd_to_ves FROM ' . table_name('exchange_rates') . ' WHERE date = :date LIMIT 1';
+        $st = db()->prepare($sql);
+        $st->execute(array(':date' => $date));
+        $row = $st->fetch();
+        return $row ? (float)$row['usd_to_ves'] : null;
+    }
+
+    public function saveExchangeRate($rate)
+    {
+        $date = date('Y-m-d');
+        $rate = (float)$rate;
+        $sql = 'INSERT INTO ' . table_name('exchange_rates') . ' (date, usd_to_ves) VALUES (:date, :rate) ON DUPLICATE KEY UPDATE usd_to_ves = :rate';
+        $st = db()->prepare($sql);
+        $st->execute(array(':date' => $date, ':rate' => $rate));
+    }
 }
