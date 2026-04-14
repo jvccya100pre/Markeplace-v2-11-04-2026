@@ -76,6 +76,19 @@ a { color: var(--corporate-color); text-decoration: none; }
     box-shadow: 0 12px 26px rgba(54, 101, 170, 0.12);
 }
 
+.panel table {
+    width: 100%;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.panel table th,
+.panel table td {
+    min-width: 96px;
+    white-space: nowrap;
+}
+
 .filters {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -273,10 +286,20 @@ button, .btn {
 @keyframes rise { from { opacity: .2; transform: translateY(14px);} to { opacity: 1; transform: translateY(0);} }
 
 @media (max-width: 760px) {
+    .topbar nav { flex-direction: column; align-items: stretch; }
+    .menu-links { width: 100%; justify-content: center; }
+    .menu-links a { flex: 1 1 auto; text-align: center; }
     .modal-content { grid-template-columns: 1fr; }
     .hero-img { height: 220px; }
-    .menu-links a { padding: 7px 10px; font-size: .9rem; }
     .panel { padding: 14px; }
+    .card { min-width: 0; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .testimonials { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+    .menu-links { flex-direction: column; gap: 8px; }
+    .menu-links a { width: 100%; }
 }
 
 .testimonials {

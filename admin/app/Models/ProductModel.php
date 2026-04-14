@@ -18,6 +18,14 @@ class ProductModel
         return $st->fetch();
     }
 
+    public function updatePriceByCode($code, $price)
+    {
+        $sql = 'UPDATE ' . table_name('products') . ' SET price = :price WHERE internal_code = :code';
+        $st = db()->prepare($sql);
+        $st->execute(array(':code' => trim($code), ':price' => $price));
+        return $st->rowCount() > 0;
+    }
+
     public function create($data)
     {
         $columns = array('category_id', 'name', 'description', 'internal_code', 'stock', 'color', 'price', 'image_path');
