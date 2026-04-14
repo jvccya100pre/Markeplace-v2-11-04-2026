@@ -1,1 +1,0 @@
-Agregar otro modelo de impresion ".PDF" ahora con 4 columnas contiene "foto principal, nombre item, codigo producto, precio en Ves" cada fila
