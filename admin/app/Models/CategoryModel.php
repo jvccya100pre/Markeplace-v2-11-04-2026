@@ -14,28 +14,30 @@ class CategoryModel
         return db()->query('SELECT * FROM ' . table_name('categories') . ' ORDER BY id DESC')->fetchAll();
     }
 
-    public function activeByName()
+    public function findById($id)
     {
-        return db()->query('SELECT id, name FROM ' . table_name('categories') . ' WHERE is_active = 1 ORDER BY name ASC')->fetchAll();
+        $sql = 'SELECT * FROM ' . table_name('categories') . ' WHERE id = :id LIMIT 1';
+        $st = db()->prepare($sql);
+        $st->execute(array(':id' => (int)$id));
+        return $st->fetch();
     }
 
     public function update($id, $name)
     {
-        $sql = 'UPDATE ' . table_name('categories') . ' SET name = :n WHERE id = :id';
+        $sql = 'UPDATE ' . table_name('categories') . ' SET name = :name WHERE id = :id';
         $st = db()->prepare($sql);
-        $st->execute(array(':n' => $name, ':id' => $id));
+        $st->execute(array(':name' => $name, ':id' => (int)$id));
     }
 
     public function delete($id)
     {
-        $sql = 'DELETE FROM ' . table_name('categories') . ' WHERE id = :id';
+        $sql = 'DELETE FROM ' . table_name('categories') . ' WHERE id = :id LIMIT 1';
         $st = db()->prepare($sql);
-        $st->execute(array(':id' => $id));
+        $st->execute(array(':id' => (int)$id));
     }
 
-    public function toggleActive($id)
+    public function activeByName()
     {
-        $sql = 'UPDATE ' . table_name('categories') . ' SET is_active = 1 - is_active WHERE id = :id';
-        $st = db()->prepare($sql);
-        $st->execute(array(':id' => $id));
+        return db()->query('SELECT id, name FROM ' . table_name('categories') . ' WHERE is_active = 1 ORDER BY name ASC')->fetchAll();
     }
+}

@@ -55,6 +55,19 @@ class ProductsController extends BaseController
             }
         }
 
+        if (is_post() && isset($_POST['import_products'])) {
+            if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK) {
+                $importResult = $this->importProductsFromCsv($_FILES['csv_file']['tmp_name'], $productModel);
+                if ($importResult['imported'] === 0 && $importResult['skipped'] === 0) {
+                    $message = 'No se importaron productos. Verifique el archivo CSV.';
+                } else {
+                    $message = sprintf('Importados %d productos. %d ya existían y no se importaron.', $importResult['imported'], $importResult['skipped']);
+                }
+            } else {
+                $message = 'No se recibió el archivo CSV o se produjo un error en la carga.';
+            }
+        }
+
         $cats = $categoryModel->activeByName();
         $editingProduct = $editId > 0 ? $productModel->findById($editId) : null;
 
@@ -90,7 +103,6 @@ class ProductsController extends BaseController
         $data['show_retail'] = isset($data['show_retail']) ? 1 : 0;
         $data['show_wholesale'] = isset($data['show_wholesale']) ? 1 : 0;
         $data['allow_negative_stock'] = isset($data['allow_negative_stock']) ? 1 : 0;
-        $data['delivery_enabled'] = isset($data['delivery_enabled']) ? 1 : 0;
         $data['gallery_mode'] = isset($data['gallery_mode']) && $data['gallery_mode'] === 'carousel' ? 'carousel' : 'single';
         $currentPath = isset($data['current_image_path']) ? trim($data['current_image_path']) : '';
         if ($editingProduct && isset($editingProduct['image_path'])) {
@@ -146,5 +158,123 @@ class ProductsController extends BaseController
         }
 
         return $currentPath !== '' ? $currentPath : '/logo.jpg';
+    }
+
+    private function importProductsFromCsv($filePath, $productModel)
+    {
+        $logFile = dirname(__DIR__, 2) . '/error_log';
+        error_log("[" . date('Y-m-d H:i:s') . "] Inicio de importación CSV: $filePath\n", 3, $logFile);
+
+        $result = array('imported' => 0, 'skipped' => 0);
+
+        if (!is_readable($filePath)) {
+            error_log("[" . date('Y-m-d H:i:s') . "] Error: Archivo no legible: $filePath\n", 3, $logFile);
+            return $result;
+        }
+
+        $handle = fopen($filePath, 'r');
+        if ($handle === false) {
+            error_log("[" . date('Y-m-d H:i:s') . "] Error: No se pudo abrir el archivo: $filePath\n", 3, $logFile);
+            return $result;
+        }
+
+        $header = fgetcsv($handle, 0, ';');
+        if ($header === false) {
+            error_log("[" . date('Y-m-d H:i:s') . "] Error: No se pudo leer el encabezado\n", 3, $logFile);
+            fclose($handle);
+            return $result;
+        }
+
+        // Convertir de ISO-8859-1 a UTF-8 si es necesario
+        $header = array_map(function($h) {
+            return mb_convert_encoding($h, 'UTF-8', 'ISO-8859-1');
+        }, $header);
+
+        error_log("[" . date('Y-m-d H:i:s') . "] Encabezado leído: " . implode(';', $header) . "\n", 3, $logFile);
+
+        $header = array_map(array($this, 'normalizeCsvHeaderValue'), $header);
+
+        $positions = array(
+            'internal_code' => $this->findCsvHeaderIndex($header, array('codigo', 'internal_code')),
+            'description' => $this->findCsvHeaderIndex($header, array('descripcion', 'description', 'name')),
+            'price' => $this->findCsvHeaderIndex($header, array('ves', 'price', 'precio')),
+        );
+
+        if ($positions['internal_code'] === false || $positions['description'] === false || $positions['price'] === false) {
+            error_log("[" . date('Y-m-d H:i:s') . "] Error: Encabezados no encontrados. Posiciones: " . print_r($positions, true) . "\n", 3, $logFile);
+            fclose($handle);
+            return $result;
+        }
+
+        error_log("[" . date('Y-m-d H:i:s') . "] Posiciones mapeadas: " . print_r($positions, true) . "\n", 3, $logFile);
+
+        while (($row = fgetcsv($handle, 0, ';')) !== false) {
+            // Convertir fila a UTF-8
+            $row = array_map(function($cell) {
+                return mb_convert_encoding($cell, 'UTF-8', 'ISO-8859-1');
+            }, $row);
+
+            $row = array_map('trim', $row);
+            if (count(array_filter($row, 'strlen')) === 0) {
+                continue;
+            }
+
+            $internalCode = isset($row[$positions['internal_code']]) ? $row[$positions['internal_code']] : '';
+            if ($internalCode === '') {
+                error_log("[" . date('Y-m-d H:i:s') . "] Fila omitida: Código vacío\n", 3, $logFile);
+                continue;
+            }
+
+            if ($productModel->findByCode($internalCode)) {
+                error_log("[" . date('Y-m-d H:i:s') . "] Fila omitida: Código duplicado: $internalCode\n", 3, $logFile);
+                $result['skipped']++;
+                continue;
+            }
+
+            $descriptionValue = isset($row[$positions['description']]) ? $row[$positions['description']] : '';
+            $priceValue = isset($row[$positions['price']]) ? $row[$positions['price']] : '0';
+
+            error_log("[" . date('Y-m-d H:i:s') . "] Procesando fila: Código=$internalCode, Descripción=$descriptionValue, Precio=$priceValue (como texto)\n", 3, $logFile);
+
+            try {
+                $productModel->create(array(
+                    'category_id' => 1,
+                    'name' => $descriptionValue,
+                    'description' => $descriptionValue,
+                    'internal_code' => $internalCode,
+                    'stock' => 0,
+                    'color' => '0',
+                    'price' => $priceValue,
+                    'image_path' => '/logo.jpg',
+                ));
+                $result['imported']++;
+                error_log("[" . date('Y-m-d H:i:s') . "] Producto importado: $internalCode\n", 3, $logFile);
+            } catch (Exception $e) {
+                error_log("[" . date('Y-m-d H:i:s') . "] Error al crear producto $internalCode: " . $e->getMessage() . "\n", 3, $logFile);
+            }
+        }
+
+        fclose($handle);
+        error_log("[" . date('Y-m-d H:i:s') . "] Fin de importación: Importados=" . $result['imported'] . ", Omitidos=" . $result['skipped'] . "\n", 3, $logFile);
+        return $result;
+    }
+
+    private function normalizeCsvHeaderValue($value)
+    {
+        $value = trim($value);
+        $value = mb_strtolower($value, 'UTF-8');
+        $value = str_replace(array('á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü'), array('a', 'e', 'i', 'o', 'u', 'n', 'u'), $value);
+        return $value;
+    }
+
+    private function findCsvHeaderIndex($header, array $candidates)
+    {
+        foreach ($header as $index => $name) {
+            if (in_array($name, $candidates, true)) {
+                return $index;
+            }
+        }
+
+        return false;
     }
 }

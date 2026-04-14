@@ -8,32 +8,52 @@ class CategoriesController extends BaseController
         require_admin_login();
         $model = new CategoryModel();
 
+        $message = '';
+        $editId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
+        $editingCategory = $editId > 0 ? $model->findById($editId) : null;
+
         if (is_post()) {
-            $action = isset($_POST['action']) ? $_POST['action'] : '';
-            if ($action === 'create') {
+            if (isset($_POST['add_category'])) {
                 $name = isset($_POST['name']) ? trim($_POST['name']) : '';
                 if ($name !== '') {
                     $model->create($name);
+                    $message = 'Categoría agregada correctamente.';
+                } else {
+                    $message = 'El nombre de categoría no puede estar vacío.';
                 }
-            } elseif ($action === 'update') {
-                $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+            }
+
+            if (isset($_POST['update_category'])) {
+                $id = isset($_POST['category_id']) ? (int)$_POST['category_id'] : 0;
                 $name = isset($_POST['name']) ? trim($_POST['name']) : '';
                 if ($id > 0 && $name !== '') {
                     $model->update($id, $name);
+                    $message = 'Categoría actualizada correctamente.';
+                    $editId = 0;
+                    $editingCategory = null;
+                } else {
+                    $message = 'Nombre de categoría inválido.';
                 }
-            } elseif ($action === 'delete') {
-                $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+            }
+
+            if (isset($_POST['delete_category'])) {
+                $id = isset($_POST['category_id']) ? (int)$_POST['category_id'] : 0;
                 if ($id > 0) {
                     $model->delete($id);
-                }
-            } elseif ($action === 'toggle_active') {
-                $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-                if ($id > 0) {
-                    $model->toggleActive($id);
+                    $message = 'Categoría eliminada correctamente.';
+                    if ($editId === $id) {
+                        $editId = 0;
+                        $editingCategory = null;
+                    }
                 }
             }
         }
 
-        $this->render('categories', array('rows' => $model->allDesc(), 'edit_id' => isset($_GET['edit']) ? (int)$_GET['edit'] : 0));
+        $this->render('categories', array(
+            'rows' => $model->allDesc(),
+            'message' => $message,
+            'editingCategory' => $editingCategory,
+            'editId' => $editId,
+        ));
     }
 }

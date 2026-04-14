@@ -54,13 +54,7 @@ class ProductModel
 
         $sql = 'INSERT INTO ' . table_name('products') . ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
         $st = db()->prepare($sql);
-        try {
-            $st->execute($params);
-        } catch (PDOException $e) {
-            $logFile = dirname(__DIR__, 2) . '/error_log';
-            error_log("[" . date('Y-m-d H:i:s') . "] Error en ProductModel::create: " . $e->getMessage() . " - SQL: $sql - Params: " . print_r($params, true) . "\n", 3, $logFile);
-            throw $e; // Re-lanzar para que el controlador lo maneje si quiere
-        }
+        $st->execute($params);
     }
 
     public function update($id, $data)
@@ -73,7 +67,7 @@ class ProductModel
             ':code' => trim($data['internal_code']),
             ':s' => (int)$data['stock'],
             ':color' => trim($data['color']),
-            ':p' => $data['price'],
+            ':p' => (float)$data['price'],
             ':img' => trim($data['image_path']) !== '' ? trim($data['image_path']) : '/logo.jpg',
             ':id' => (int)$id
         );
@@ -85,8 +79,8 @@ class ProductModel
             $columns[] = 'show_wholesale=:show_wholesale';
             $columns[] = 'allow_negative_stock=:allow_negative_stock';
             $columns[] = 'gallery_mode=:gallery_mode';
-            $params[':price_retail'] = isset($data['price_retail']) ? $data['price_retail'] : $data['price'];
-            $params[':price_wholesale'] = isset($data['price_wholesale']) ? $data['price_wholesale'] : '0.00';
+            $params[':price_retail'] = isset($data['price_retail']) ? (float)$data['price_retail'] : (float)$data['price'];
+            $params[':price_wholesale'] = isset($data['price_wholesale']) ? (float)$data['price_wholesale'] : 0.00;
             $params[':show_retail'] = isset($data['show_retail']) ? (int)$data['show_retail'] : 1;
             $params[':show_wholesale'] = isset($data['show_wholesale']) ? (int)$data['show_wholesale'] : 0;
             $params[':allow_negative_stock'] = isset($data['allow_negative_stock']) ? (int)$data['allow_negative_stock'] : 0;

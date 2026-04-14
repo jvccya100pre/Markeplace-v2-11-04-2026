@@ -4,6 +4,14 @@
         <p><?php echo esc($message); ?></p>
     <?php endif; ?>
 
+    <form method="post" enctype="multipart/form-data" style="margin-bottom:16px;">
+        <input type="hidden" name="import_products" value="1">
+        <div><label>Importar inventario CSV</label></div>
+        <div><input type="file" name="csv_file" accept=".csv" required></div>
+        <div><small>Encabezado: Código;Descripción;ves · Separador `;` · Descripción se usa para name y description · ves se usa para price.</small></div>
+        <div><button type="submit">Importar productos</button></div>
+    </form>
+
     <form method="get" class="filters" style="margin-bottom:10px;">
         <div>
             <label>Buscar por nombre o codigo</label>
@@ -40,7 +48,6 @@
         <div><label><input type="checkbox" name="show_retail" value="1" <?php echo $formData['show_retail'] ? 'checked' : ''; ?>> Mostrar precio detall</label></div>
         <div><label><input type="checkbox" name="show_wholesale" value="1" <?php echo $formData['show_wholesale'] ? 'checked' : ''; ?>> Mostrar precio mayor</label></div>
         <div><label><input type="checkbox" name="allow_negative_stock" value="1" <?php echo $formData['allow_negative_stock'] ? 'checked' : ''; ?>> Permitir ventas en negativo</label></div>
-        <div><label><input type="checkbox" name="delivery_enabled" value="1" <?php echo $formData['delivery_enabled'] ? 'checked' : ''; ?>> Prestar servicio Delivery</label></div>
         <div>
             <label>Modo de imagen</label>
             <select name="gallery_mode">
