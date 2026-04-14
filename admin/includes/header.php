@@ -6,6 +6,7 @@
     <title>Panel Admin</title>
     <link rel="icon" href="<?php echo esc(app_url('/img/company/icono.ico')); ?>" type="image/x-icon">
     <link rel="stylesheet" href="<?php echo esc(app_url('/assets/styles.css')); ?>">
+    <script src="<?php echo esc(app_url('/assets/app.js')); ?>" defer></script>
 </head>
 <body>
 <header class="topbar">
@@ -15,6 +16,11 @@
                 <img class="brand-icon" src="<?php echo esc(app_url('/img/company/LogoTuTiendaOnline3.png')); ?>" alt="Logo">
                 <strong>Panel Administrativo</strong>
             </a>
+            <button class="burger-menu" type="button" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="menu-links">
                 <a href="<?php echo esc(app_url('/index.php')); ?>">Inicio</a>
                 <a href="<?php echo esc(app_url('/categories.php')); ?>">Categorias</a>

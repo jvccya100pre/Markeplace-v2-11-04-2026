@@ -30,6 +30,11 @@ $cartCount = count(cart_session_items());
                 <img class="brand-icon" src="img/company/LogoTuTiendaOnline3.png" width='45px' height='45px' alt="Logo">
                 <strong>Tu tienda On line</strong>
             </a>
+            <button class="burger-menu" type="button" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="menu-links">
                 <a href="<?php echo esc(route_url('home')); ?>">Inicio</a>
                 <a href="<?php echo esc(route_url('catalog_pdf')); ?>">Descargar catalogo PDF</a>

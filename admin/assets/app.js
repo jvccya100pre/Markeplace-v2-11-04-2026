@@ -38,3 +38,15 @@ window.onclick = function (event) {
 function backToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// Burger menu functionality
+document.addEventListener('DOMContentLoaded', function () {
+    var burger = document.querySelector('.burger-menu');
+    var menu = document.querySelector('.menu-links');
+    if (burger && menu) {
+        burger.addEventListener('click', function () {
+            burger.classList.toggle('active');
+            menu.classList.toggle('active');
+        });
+    }
+});
