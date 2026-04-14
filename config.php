@@ -15,8 +15,8 @@ $config = array(
         'prefix' => 'demo_markeplacev1_'
     ),
     'base_path' => '',
-    'captcha_public' => '6LcPmbcsAAAAAP1EBl_9o7-EKNYoSP9XwdMj09ri',
-    'captcha_secret' => '6LcPmbcsAAAAAGxREm0qnvELLLEmB-cQ0fZpuT6N',
+    'captcha_public' => '6LdpnLcsAAAAAP4WgOwpDgB6NKk-nTIsvQhgd2S4',
+    'captcha_secret' => '6LdpnLcsAAAAABiPFfqXyHD2aRgzUYxJ21rdMktA',
     'google_oauth_client_id' => '',
     'google_oauth_client_secret' => ''
 );
