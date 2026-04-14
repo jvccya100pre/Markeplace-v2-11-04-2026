@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Serve existing files/directories directly (assets, images, etc.)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Pretty routes: /login, /cart, /checkout, etc.
+RewriteRule ^([A-Za-z0-9_-]+)/?$ index.php?r=$1 [L,QSA]
