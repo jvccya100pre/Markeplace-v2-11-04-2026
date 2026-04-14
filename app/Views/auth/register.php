@@ -13,4 +13,7 @@
         </div>
         <button type="submit">Crear cuenta</button>
     </form>
+    <div style="margin:14px 0; text-align:center;">
+        <a class="btn btn-alt" href="<?php echo esc(route_url('google_oauth', array('next' => isset($_GET['next']) ? $_GET['next'] : ''))); ?>" style="display:inline-block; width:auto; padding: 10px 14px;">Registrar con Google</a>
+    </div>
 </section>

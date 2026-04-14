@@ -16,7 +16,9 @@ $config = array(
     ),
     'base_path' => '',
     'captcha_public' => '6Ld5U8UUAAAAAM_Ghlp4ocZor4UKtBbKI2HW_fa_',
-    'captcha_secret' => '6Ld5U8UUAAAAAFk_ZIltFB--mM2ySim8LHW1h1CP'
+    'captcha_secret' => '6Ld5U8UUAAAAAFk_ZIltFB--mM2ySim8LHW1h1CP',
+    'google_oauth_client_id' => '',
+    'google_oauth_client_secret' => ''
 );
 
 function db()
@@ -108,6 +110,38 @@ function route_url($route, $params = array())
     return $url;
 }
 
+function logout_user_session()
+{
+    $_SESSION = array();
+
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params['path'], $params['domain'],
+            $params['secure'], $params['httponly']
+        );
+    }
+
+    session_destroy();
+}
+
+function check_session_timeout()
+{
+    $timeoutSeconds = 600; // 10 minutos
+
+    if (!isset($_SESSION['user'])) {
+        return;
+    }
+
+    $now = time();
+    if (isset($_SESSION['last_activity']) && ($now - (int)$_SESSION['last_activity']) > $timeoutSeconds) {
+        logout_user_session();
+        redirect_to(route_url('login', array('timeout' => 1)));
+    }
+
+    $_SESSION['last_activity'] = $now;
+}
+
 function require_user_login()
 {
     if (!auth_user()) {
@@ -138,6 +172,8 @@ function cart_session_items()
     }
     return $_SESSION['cart'];
 }
+
+check_session_timeout();
 
 function cart_set_items($items)
 {

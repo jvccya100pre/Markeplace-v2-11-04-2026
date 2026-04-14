@@ -10,7 +10,86 @@ function togglePassword(inputId, btn) {
     }
 }
 
+function createSessionWarningBanner(message, onContinue) {
+    var existing = document.getElementById('sessionTimeoutWarning');
+    if (existing) {
+        return existing;
+    }
+
+    var banner = document.createElement('div');
+    banner.id = 'sessionTimeoutWarning';
+    banner.className = 'session-warning-banner';
+
+    var text = document.createElement('p');
+    text.textContent = message;
+    banner.appendChild(text);
+
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Continuar conectado';
+    button.addEventListener('click', onContinue);
+    banner.appendChild(button);
+
+    document.body.appendChild(banner);
+    return banner;
+}
+
+function removeSessionWarningBanner() {
+    var existing = document.getElementById('sessionTimeoutWarning');
+    if (existing) {
+        existing.parentNode.removeChild(existing);
+    }
+}
+
+function initSessionTimeout(config) {
+    if (!config || !config.logoutUrl) {
+        return;
+    }
+
+    var timeoutMs = parseInt(config.timeoutMs, 10) || 600000;
+    var warningMs = parseInt(config.warningMs, 10) || 60000;
+    var logoutUrl = config.logoutUrl;
+    var warningTimer = null;
+    var logoutTimer = null;
+
+    function scheduleTimers() {
+        clearTimeout(warningTimer);
+        clearTimeout(logoutTimer);
+
+        warningTimer = setTimeout(function () {
+            createSessionWarningBanner('Tu sesión se cerrará en 1 minuto por inactividad.', function () {
+                resetTimers();
+            });
+        }, Math.max(0, timeoutMs - warningMs));
+
+        logoutTimer = setTimeout(function () {
+            window.location.href = logoutUrl + '?timeout=1';
+        }, timeoutMs);
+    }
+
+    function resetTimers() {
+        removeSessionWarningBanner();
+        scheduleTimers();
+    }
+
+    var activityHandler = function () {
+        resetTimers();
+    };
+
+    ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'].forEach(function (eventName) {
+        window.addEventListener(eventName, activityHandler);
+    });
+
+    scheduleTimers();
+}
+
 var modalImages = [];
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.sessionTimeoutConfig) {
+        initSessionTimeout(window.sessionTimeoutConfig);
+    }
+});
 var currentModalImageIndex = 0;
 
 function openProductModal(payload) {

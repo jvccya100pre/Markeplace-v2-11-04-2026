@@ -12,6 +12,15 @@ $cartCount = count(cart_session_items());
     <link rel="stylesheet" href="assets/styles.css">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="assets/app.js" defer></script>
+    <?php if ($u): ?>
+        <script>
+            window.sessionTimeoutConfig = {
+                timeoutMs: 600000,
+                warningMs: 60000,
+                logoutUrl: "<?php echo esc(route_url('logout')); ?>"
+            };
+        </script>
+    <?php endif; ?>
 </head>
 <body>
 <header class="topbar">
