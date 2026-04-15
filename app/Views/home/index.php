@@ -15,7 +15,7 @@
         </div>
         <div>
             <label>Ordenar items</label>
-            <select name="sort">
+            <select name="sort" id="sortItems">
                 <option value="alphabetical" <?php echo $sort === 'alphabetical' ? 'selected' : ''; ?>>Alfabeticamente</option>
                 <option value="price_low" <?php echo $sort === 'price_low' ? 'selected' : ''; ?>>Precio mas bajo</option>
                 <option value="price_high" <?php echo $sort === 'price_high' ? 'selected' : ''; ?>>Precio mas alto</option>
@@ -41,19 +41,21 @@
     <form method="post" style="margin-top:10px;">
         <button class="btn-warn" type="submit" name="clear_cart" value="1">Borrar items</button>
     </form>
+    <div id="letterFilter" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;"></div>
 </section>
 
-<section class="grid">
+<section class="grid" id="productGrid">
     <?php foreach ($products as $p): ?>
         <?php
         $images = array_filter(array_map('trim', explode('|', $p['image_path'])));
         if (count($images) === 0) {
             $images = array($p['image_path']);
         }
+        $basePrice = isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price'];
         $modalPayload = array(
             'id' => (int)$p['id'],
             'images' => array_values($images),
-            'price' => format_price(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price']),
+            'price' => format_price($basePrice),
             'priceWholesale' => isset($p['price_wholesale']) && $p['price_wholesale'] > 0 ? format_price($p['price_wholesale']) : '',
             'showRetail' => isset($p['show_retail']) ? (bool)$p['show_retail'] : true,
             'showWholesale' => isset($p['show_wholesale']) ? (bool)$p['show_wholesale'] : false,
@@ -64,7 +66,7 @@
             'name' => $p['name']
         );
         ?>
-        <article class="card">
+        <article class="card" data-name="<?php echo esc(mb_strtolower($p['name'], 'UTF-8')); ?>" data-price="<?php echo number_format((float)$basePrice, 2, '.', ''); ?>">
             <img src="<?php echo esc($images[0]); ?>" alt="<?php echo esc($p['name']); ?>" onclick='openProductModal(<?php echo json_encode($modalPayload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>)'>
             <div class="card-body">
                 <h3><?php echo esc($p['name']); ?></h3>
@@ -72,7 +74,7 @@
                 <p>Codigo: <?php echo esc($p['internal_code']); ?></p>
                 <p class="stock">Stock: <?php echo (int)$p['stock']; ?></p>
                 <?php if (!empty($p['show_retail'])): ?>
-                    <p>Precio detal: <?php echo format_price(isset($p['price_retail']) && $p['price_retail'] > 0 ? $p['price_retail'] : $p['price']); ?></p>
+                    <p>Precio detal: <?php echo format_price($basePrice); ?></p>
                 <?php endif; ?>
                 <?php if (!empty($p['show_wholesale']) && !empty($p['price_wholesale'])): ?>
                     <p>Precio mayor: <?php echo format_price($p['price_wholesale']); ?></p>
@@ -90,6 +92,8 @@
         </article>
     <?php endforeach; ?>
 </section>
+
+<p id="emptyLetterResult" style="display:none;margin:12px 0;color:#7a1f1f;font-weight:600;">No hay items disponibles para esa letra en esta pagina.</p>
 
 <div class="pagination">
     <a href="<?php echo esc(route_url('home', array('page' => 1, 'category' => (int)$category, 'search' => $search, 'sort' => $sort))); ?>">Primera</a>
@@ -175,3 +179,125 @@
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    var sortSelect = document.getElementById('sortItems');
+    var grid = document.getElementById('productGrid');
+    var letterFilter = document.getElementById('letterFilter');
+    var emptyResult = document.getElementById('emptyLetterResult');
+    if (!sortSelect || !grid || !letterFilter) {
+        return;
+    }
+
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
+    var activeLetter = 'all';
+
+    function normalizeText(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim()
+            .toUpperCase();
+    }
+
+    function getCardLetter(card) {
+        var name = card.getAttribute('data-name') || '';
+        var normalized = normalizeText(name);
+        return normalized ? normalized.charAt(0) : '#';
+    }
+
+    function updatePaginationLinks() {
+        var links = document.querySelectorAll('.pagination a');
+        for (var i = 0; i < links.length; i++) {
+            var url = new URL(links[i].href, window.location.origin);
+            url.searchParams.set('sort', sortSelect.value);
+            links[i].href = url.toString();
+        }
+    }
+
+    function renderLetterButtons() {
+        var letters = {};
+        for (var i = 0; i < cards.length; i++) {
+            letters[getCardLetter(cards[i])] = true;
+        }
+
+        var keys = Object.keys(letters).sort();
+        var html = ['<button type="button" data-letter="all" style="padding:6px 10px;border:1px solid #d4d4d4;border-radius:999px;background:#fff;cursor:pointer;">Todos</button>'];
+        for (var j = 0; j < keys.length; j++) {
+            html.push('<button type="button" data-letter="' + keys[j] + '" style="padding:6px 10px;border:1px solid #d4d4d4;border-radius:999px;background:#fff;cursor:pointer;">' + keys[j] + '</button>');
+        }
+        letterFilter.innerHTML = html.join('');
+        highlightActiveLetter();
+    }
+
+    function highlightActiveLetter() {
+        var buttons = letterFilter.querySelectorAll('button');
+        for (var i = 0; i < buttons.length; i++) {
+            if (buttons[i].getAttribute('data-letter') === activeLetter) {
+                buttons[i].style.background = '#111';
+                buttons[i].style.color = '#fff';
+                buttons[i].style.borderColor = '#111';
+            } else {
+                buttons[i].style.background = '#fff';
+                buttons[i].style.color = '#111';
+                buttons[i].style.borderColor = '#d4d4d4';
+            }
+        }
+    }
+
+    function applyLetterFilter() {
+        var visibleCount = 0;
+        for (var i = 0; i < cards.length; i++) {
+            var match = activeLetter === 'all' || getCardLetter(cards[i]) === activeLetter;
+            cards[i].style.display = match ? '' : 'none';
+            if (match) {
+                visibleCount++;
+            }
+        }
+        emptyResult.style.display = visibleCount === 0 ? 'block' : 'none';
+        highlightActiveLetter();
+    }
+
+    function sortCards() {
+        var sorted = cards.slice();
+        sorted.sort(function (a, b) {
+            var mode = sortSelect.value;
+            if (mode === 'price_low') {
+                return parseFloat(a.getAttribute('data-price') || '0') - parseFloat(b.getAttribute('data-price') || '0');
+            }
+            if (mode === 'price_high') {
+                return parseFloat(b.getAttribute('data-price') || '0') - parseFloat(a.getAttribute('data-price') || '0');
+            }
+            return (a.getAttribute('data-name') || '').localeCompare(b.getAttribute('data-name') || '', 'es');
+        });
+
+        for (var i = 0; i < sorted.length; i++) {
+            grid.appendChild(sorted[i]);
+        }
+
+        cards = sorted;
+        renderLetterButtons();
+        applyLetterFilter();
+
+        var url = new URL(window.location.href);
+        url.searchParams.set('sort', sortSelect.value);
+        window.history.replaceState({}, '', url.toString());
+        updatePaginationLinks();
+    }
+
+    sortSelect.addEventListener('change', sortCards);
+    letterFilter.addEventListener('click', function (event) {
+        var button = event.target;
+        if (!button || button.tagName !== 'BUTTON') {
+            return;
+        }
+        activeLetter = button.getAttribute('data-letter') || 'all';
+        applyLetterFilter();
+    });
+
+    renderLetterButtons();
+    applyLetterFilter();
+    updatePaginationLinks();
+}());
+</script>
