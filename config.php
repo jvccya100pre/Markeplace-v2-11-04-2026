@@ -8,7 +8,7 @@ date_default_timezone_set('America/Caracas');
 $config = array(
     'db' => array(
         'host' => 'localhost',
-        'name' => 'createso__no_borrar_tutiendaonlinelq_donato',
+        'name' => 'createso_no_borrar_tutiendaonlinelq_donato',
         'user' => 'createso_vpsdatos',
         'pass' => 'Tresado37#',
         'charset' => 'utf8mb4',

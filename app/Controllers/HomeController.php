@@ -47,19 +47,19 @@ class HomeController extends Controller
         if ((int)$count['c'] === 0) {
             $ins = 'INSERT INTO ' . table_name('products') . ' (category_id, name, description, internal_code, stock, color, price, image_path, created_at) VALUES (:c, :n, :d, :code, :s, :color, :p, :img, NOW())';
             $st = db()->prepare($ins);
-            for ($i = 1; $i <= 25; $i++) {
-                $cat = (($i - 1) % 5) + 1;
-                $st->execute(array(
-                    ':c' => $cat,
-                    ':n' => 'Producto Demo ' . $i,
-                    ':d' => 'Descripcion de ejemplo para el producto ' . $i,
-                    ':code' => 'SKU-DEMO-' . str_pad($i, 4, '0', STR_PAD_LEFT),
-                    ':s' => rand(3, 50),
-                    ':color' => 'Surtido',
-                    ':p' => rand(5, 80),
-                    ':img' => '/logo.jpg'
-                ));
-            }
+            // for ($i = 1; $i <= 25; $i++) {
+            //     $cat = (($i - 1) % 5) + 1;
+            //     $st->execute(array(
+            //         ':c' => $cat,
+            //         ':n' => 'Producto Demo ' . $i,
+            //         ':d' => 'Descripcion de ejemplo para el producto ' . $i,
+            //         ':code' => 'SKU-DEMO-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+            //         ':s' => rand(3, 50),
+            //         ':color' => 'Surtido',
+            //         ':p' => rand(5, 80),
+            //         ':img' => '/logo.jpg'
+            //     ));
+            // }
         }
 
         $search = isset($_GET['search']) ? trim($_GET['search']) : '';
