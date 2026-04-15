@@ -27,8 +27,8 @@
                 <td><?php echo (int)$r['is_active'] ? 'Activa' : 'Inactiva'; ?></td>
                 <td>
                     <a href="<?php echo esc(app_url('/categories.php?edit=' . (int)$r['id'])); ?>">Editar</a>
-                    <?php if (mb_strtolower(trim($r['name']), 'UTF-8') !== 'varios'): ?>
-                        <form method="post" style="display:inline-block;margin:0;padding:0;" onsubmit="return confirm('Esta acción es irreversible. Los productos bajo esta categoría pasarán a ser categoría \u201cVarios\u201d. ¿Deseas continuar?');">
+                    <?php if (mb_strtolower(trim($r['name']), 'UTF-8') !== 'general'): ?>
+                        <form method="post" style="display:inline-block;margin:0;padding:0;" onsubmit="return confirm('Esta acción es irreversible. Los productos bajo esta categoría pasarán a ser categoría \u201cGeneral\u201d. ¿Deseas continuar?');">
                             <input type="hidden" name="delete_category" value="1">
                             <input type="hidden" name="category_id" value="<?php echo (int)$r['id']; ?>">
                             <button type="submit" class="btn-warn" style="padding:6px 10px;">Eliminar</button>

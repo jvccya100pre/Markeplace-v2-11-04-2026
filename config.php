@@ -16,7 +16,17 @@ $config = array(
     ),
     'base_path' => '',
     'captcha_public' => '6LdpnLcsAAAAAP4WgOwpDgB6NKk-nTIsvQhgd2S4',
-    'captcha_secret' => '6LdpnLcsAAAAABiPFfqXyHD2aRgzUYxJ21rdMktA'
+    'captcha_secret' => '6LdpnLcsAAAAABiPFfqXyHD2aRgzUYxJ21rdMktA',
+    'mail' => array(
+        'host' => 'mail.tutiendaonlinelq.com',
+        'port' => 465,
+        'secure' => 'ssl',
+        'username' => 'info@tutiendaonlinelq.com',
+        'password' => 'Losteques.2026.',
+        'from' => 'info@tutiendaonlinelq.com',
+        'from_name' => 'Tu Tienda Online',
+        'basepath' => 'http://mail.tutiendaonlinelq.com.'
+    )
 );
 
 function db()
@@ -260,5 +270,55 @@ function format_price($price_in_ves, $currency = null)
         return '$' . number_format($price, 2);
     } else {
         return 'VES ' . number_format($price_in_ves, 2);
+    }
+}
+
+function send_smtp_mail($toEmail, $toName, $subject, $htmlBody, $textBody = '')
+{
+    global $config;
+
+    $mailConfig = isset($config['mail']) && is_array($config['mail']) ? $config['mail'] : array();
+    $smtpHost = isset($mailConfig['host']) ? trim($mailConfig['host']) : '';
+    $smtpUser = isset($mailConfig['username']) ? trim($mailConfig['username']) : '';
+    $smtpPass = isset($mailConfig['password']) ? (string)$mailConfig['password'] : '';
+    $smtpFrom = isset($mailConfig['from']) ? trim($mailConfig['from']) : $smtpUser;
+
+    if ($smtpHost === '' || $smtpUser === '' || $smtpPass === '' || $smtpFrom === '' || trim((string)$toEmail) === '') {
+        return false;
+    }
+
+    $phpMailerBase = __DIR__ . '/lib/PHPMailer/PHPMailer-6.9.1/src/';
+    if (!is_file($phpMailerBase . 'PHPMailer.php') || !is_file($phpMailerBase . 'SMTP.php') || !is_file($phpMailerBase . 'Exception.php')) {
+        return false;
+    }
+
+    require_once $phpMailerBase . 'Exception.php';
+    require_once $phpMailerBase . 'PHPMailer.php';
+    require_once $phpMailerBase . 'SMTP.php';
+
+    try {
+        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = $smtpHost;
+        $mail->SMTPAuth = true;
+        $mail->Username = $smtpUser;
+        $mail->Password = $smtpPass;
+        $mail->SMTPSecure = isset($mailConfig['secure']) ? trim($mailConfig['secure']) : 'ssl';
+        $mail->Port = isset($mailConfig['port']) ? (int)$mailConfig['port'] : 465;
+        $mail->CharSet = 'UTF-8';
+
+        $mail->setFrom($smtpFrom, isset($mailConfig['from_name']) ? $mailConfig['from_name'] : 'Tu Tienda Online');
+        $mail->addAddress(trim((string)$toEmail), trim((string)$toName));
+
+        $mail->isHTML(true);
+        $mail->Subject = (string)$subject;
+        $mail->Body = (string)$htmlBody;
+        $mail->AltBody = $textBody !== '' ? (string)$textBody : strip_tags((string)$htmlBody);
+
+        return $mail->send();
+    } catch (Exception $e) {
+        $logFile = __DIR__ . '/error_log';
+        error_log('[' . date('Y-m-d H:i:s') . '] Error enviando SMTP: ' . $e->getMessage() . "\n", 3, $logFile);
+        return false;
     }
 }

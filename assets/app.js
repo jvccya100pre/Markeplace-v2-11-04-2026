@@ -136,6 +136,16 @@ function openProductModal(payload) {
         retailSection.style.display = 'none';
     }
 
+    var loginInfo = document.getElementById('modalLoginPriceInfo');
+    if (loginInfo) {
+        loginInfo.style.display = payload.isLoggedIn ? 'none' : 'block';
+    }
+
+    var stockLine = document.getElementById('modalStockLine');
+    if (stockLine) {
+        stockLine.style.display = payload.showStock ? 'block' : 'none';
+    }
+
     modal.style.display = 'block';
 }
 

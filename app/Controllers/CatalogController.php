@@ -5,6 +5,7 @@ class CatalogController
 {
     public function download()
     {
+        require_user_login();
         $products = db()->query('SELECT name, internal_code, stock, price FROM ' . table_name('products') . ' ORDER BY id DESC LIMIT 300')->fetchAll();
         $date = date('Ymd_His');
         $filename = 'catalogo_' . $date . '.pdf';
@@ -52,6 +53,11 @@ class CatalogController
 
     public function download2()
     {
+        require_user_login();
+        $currentUser = auth_user();
+        $allowedEmails = $this->parseEmailList(get_setting('wholesale_allowed_emails', ''));
+        $canSeeWholesale = isset($currentUser['email']) && in_array(mb_strtolower(trim($currentUser['email']), 'UTF-8'), $allowedEmails, true);
+
         $products = db()->query('SELECT name, internal_code, price, price_retail, price_wholesale, image_path FROM ' . table_name('products') . ' WHERE (price_retail > 0 OR price > 0) ORDER BY id DESC LIMIT 300')->fetchAll();
         $date = date('Ymd_His');
         $filename = 'catalogo_usd_' . $date . '.pdf';
@@ -83,7 +89,7 @@ class CatalogController
         foreach ($products as $p) {
             $baseRetail = isset($p['price_retail']) && (float)$p['price_retail'] > 0 ? (float)$p['price_retail'] : (float)$p['price'];
             $usdRetail = $baseRetail / $exchangeRate;
-            $usdWholesale = $p['price_wholesale'] > 0 ? $p['price_wholesale'] / $exchangeRate : 0;
+            $usdWholesale = ($canSeeWholesale && $p['price_wholesale'] > 0) ? $p['price_wholesale'] / $exchangeRate : 0;
             $images = array_filter(array_map('trim', explode('|', $p['image_path'])));
             $imagePath = count($images) > 0 ? $images[0] : '/logo.jpg';
             $filePath = $this->resolveImageFilePath($imagePath);
@@ -104,7 +110,9 @@ class CatalogController
             $pdf->MultiCell($colWidth, 4, 'Cod: ' . $p['internal_code'], 0, 'C');
             $pdf->SetFont('Arial', '', 8);
             $pdf->MultiCell($colWidth, 4, 'Detal: $' . number_format($usdRetail, 2), 0, 'C');
-            $pdf->MultiCell($colWidth, 4, 'Mayor: $' . number_format($usdWholesale, 2), 0, 'C');
+            if ($canSeeWholesale) {
+                $pdf->MultiCell($colWidth, 4, 'Mayor: $' . number_format($usdWholesale, 2), 0, 'C');
+            }
 
             $col++;
             if ($col === $cols) {
@@ -180,5 +188,24 @@ class CatalogController
             'rate' => 1.0,
             'date_label' => date('d/m/Y', strtotime($today)),
         );
+    }
+
+    private function parseEmailList($raw)
+    {
+        $raw = trim((string)$raw);
+        if ($raw === '') {
+            return array();
+        }
+
+        $lines = preg_split('/[\r\n,;]+/', $raw);
+        $emails = array();
+        foreach ($lines as $line) {
+            $email = mb_strtolower(trim($line), 'UTF-8');
+            if ($email !== '') {
+                $emails[] = $email;
+            }
+        }
+
+        return array_values(array_unique($emails));
     }
 }

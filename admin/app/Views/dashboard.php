@@ -52,6 +52,11 @@
             <div><label>Telefono</label><input type="text" name="pm_phone_number" value="<?php echo esc($currentPhoneNumber); ?>"></div>
             <div><label>Binance UID/correo</label><input type="text" name="binance_uid" value="<?php echo esc($currentBinance); ?>"></div>
             <div><label>Paypal correo</label><input type="email" name="paypal_email" value="<?php echo esc($currentPaypal); ?>"></div>
+            <div style="grid-column:1/-1;">
+                <label>Correos con acceso a precio al mayor</label>
+                <textarea name="wholesale_allowed_emails" rows="4" placeholder="cliente1@correo.com&#10;cliente2@correo.com"><?php echo esc($currentWholesaleEmails); ?></textarea>
+                <small>Un correo por línea. Solo estos clientes registrados verán precio al mayor.</small>
+            </div>
             <div><button type="submit" name="save_payment" value="1">Guardar</button></div>
         </div>
     </form>

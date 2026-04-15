@@ -5,6 +5,13 @@ class HomeController extends Controller
 {
     public function index()
     {
+        $currentUser = auth_user();
+        $isLoggedIn = $currentUser ? true : false;
+        $allowedWholesaleEmails = $this->parseEmailList(get_setting('wholesale_allowed_emails', ''));
+        $canSeeWholesale = $isLoggedIn && isset($currentUser['email']) && in_array(mb_strtolower(trim($currentUser['email']), 'UTF-8'), $allowedWholesaleEmails, true);
+        $hiddenProductIds = $this->parseIdList(get_setting('hidden_product_ids', ''));
+        $hiddenStockProductIds = $this->parseIdList(get_setting('hidden_stock_product_ids', ''));
+
         if (is_post() && isset($_POST['clear_cart'])) {
             cart_set_items(array());
             redirect_to(route_url('home'));
@@ -124,6 +131,12 @@ class HomeController extends Controller
         $listSt->execute($params);
         $products = $listSt->fetchAll();
 
+        if (count($hiddenProductIds)) {
+            $products = array_values(array_filter($products, function ($p) use ($hiddenProductIds) {
+                return !in_array((int)$p['id'], $hiddenProductIds, true);
+            }));
+        }
+
         $categories = db()->query('SELECT id, name FROM ' . table_name('categories') . ' WHERE is_active = 1 ORDER BY name ASC')->fetchAll();
 
         $cartItems = cart_session_items();
@@ -149,7 +162,48 @@ class HomeController extends Controller
             'page' => $page,
             'totalPages' => $totalPages,
             'cartTotal' => $cartTotal,
-            'sellerId' => isset($_SESSION['seller_id']) ? (int)$_SESSION['seller_id'] : 0
+            'sellerId' => isset($_SESSION['seller_id']) ? (int)$_SESSION['seller_id'] : 0,
+            'isLoggedIn' => $isLoggedIn,
+            'canSeeWholesale' => $canSeeWholesale,
+            'hiddenStockProductIds' => $hiddenStockProductIds
         ));
+    }
+
+    private function parseEmailList($raw)
+    {
+        $raw = trim((string)$raw);
+        if ($raw === '') {
+            return array();
+        }
+
+        $lines = preg_split('/[\r\n,;]+/', $raw);
+        $emails = array();
+        foreach ($lines as $line) {
+            $email = mb_strtolower(trim($line), 'UTF-8');
+            if ($email !== '') {
+                $emails[] = $email;
+            }
+        }
+
+        return array_values(array_unique($emails));
+    }
+
+    private function parseIdList($raw)
+    {
+        $raw = trim((string)$raw);
+        if ($raw === '') {
+            return array();
+        }
+
+        $parts = preg_split('/\s*,\s*/', $raw);
+        $ids = array();
+        foreach ($parts as $part) {
+            $id = (int)$part;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 }

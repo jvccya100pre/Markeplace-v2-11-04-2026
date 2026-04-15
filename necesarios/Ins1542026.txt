@@ -1,0 +1,13 @@
+1- Ocultar precios a usuarios que no han iniciado session.
+
+2- En el panel administrativo agregar boton ocultar producto.
+
+3- En el panel administrativo agregar boton ocultar stock en existencia
+
+4- Agregar al sistema Precio al mayor visibles solo para clientes que el administrador elija mediante correo de registro.
+
+5- Al cliente confirmar compra debe cargar imagen de comprobante ".jpg, .png, .jpeg" y debe haber un "input type='text' max='40' placeholder='indicar los ultimos digitos de la transferencia'"
+
+6- En el areatext de la confirmacion de pago colocar "placeholder='Por favor indique si desea variantes de productos como color, tamaño o metros. tambien indique el metodo de retiro de la compra. Personal Delivery(Costo adicional), O encomienda cobro destino. Nota: compra se envia productos despues de confirmado los depositos.'"
+
+7- Cambiar categoria "Varios" por "General"

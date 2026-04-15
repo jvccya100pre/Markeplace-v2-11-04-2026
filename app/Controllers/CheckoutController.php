@@ -28,6 +28,7 @@ class CheckoutController extends Controller
         $selectedPayment = 'deposito bancario';
         $selectedDelivery = 'personal';
         $notes = '';
+        $transferReference = '';
 
         $hasDelivery = false;
         foreach ($products as $p) {
@@ -43,13 +44,24 @@ class CheckoutController extends Controller
             $selectedPayment = isset($_POST['payment_method']) ? trim($_POST['payment_method']) : 'deposito bancario';
             $selectedDelivery = isset($_POST['delivery_method']) ? trim($_POST['delivery_method']) : 'personal';
             $notes = isset($_POST['notes']) ? trim($_POST['notes']) : '';
+            $transferReference = isset($_POST['transfer_reference']) ? trim($_POST['transfer_reference']) : '';
 
             if (!$this->hasPaymentDetails($selectedPayment, $paymentDetails)) {
                 $error = 'El metodo de pago seleccionado no tiene datos configurados. Contacta al administrador o elige otro metodo.';
+            } elseif ($transferReference === '') {
+                $error = 'Debes indicar los ultimos digitos de la transferencia.';
             }
         }
 
         if (is_post() && $error === '') {
+            $proofResult = $this->storePaymentProof(isset($_FILES['payment_proof']) ? $_FILES['payment_proof'] : null);
+            if (!$proofResult['ok']) {
+                $error = $proofResult['error'];
+            }
+        }
+
+        if (is_post() && $error === '') {
+            $proofPath = $proofResult['path'];
 
             $total = 0;
             foreach ($products as $p) {
@@ -59,13 +71,27 @@ class CheckoutController extends Controller
 
             $orderColumns = 'user_id, total, status, payment_method, notes, created_at';
             $orderValues = ':u, :t, :s, :pm, :n, NOW()';
+            $notesWithPaymentData = $notes;
+            $notesWithPaymentData .= ($notesWithPaymentData !== '' ? "\n" : '') . 'Ultimos digitos de transferencia: ' . $transferReference;
+            $notesWithPaymentData .= "\nComprobante: " . $proofPath;
             $params = array(
                 ':u' => $currentUser['id'],
                 ':t' => $total,
                 ':s' => 'pendiente',
                 ':pm' => $selectedPayment,
-                ':n' => $notes
+                ':n' => $notesWithPaymentData
             );
+
+            if (column_exists('orders', 'transfer_reference')) {
+                $orderColumns .= ', transfer_reference';
+                $orderValues .= ', :tr';
+                $params[':tr'] = $transferReference;
+            }
+            if (column_exists('orders', 'payment_proof_image')) {
+                $orderColumns .= ', payment_proof_image';
+                $orderValues .= ', :proof';
+                $params[':proof'] = $proofPath;
+            }
             if (column_exists('orders', 'delivery_method')) {
                 $orderColumns .= ', delivery_method';
                 $orderValues .= ', :dm';
@@ -106,6 +132,28 @@ class CheckoutController extends Controller
                 }
             }
 
+            $adminEmail = isset($GLOBALS['config']['mail']['from']) ? $GLOBALS['config']['mail']['from'] : get_setting('company_email', '');
+            if ($adminEmail !== '') {
+                $subject = 'Nuevo pedido confirmado #' . $orderId;
+                $html = '<h3>Cliente confirmó un pedido</h3>'
+                    . '<p><strong>Pedido:</strong> #' . (int)$orderId . '</p>'
+                    . '<p><strong>Cliente:</strong> ' . esc($currentUser['name']) . ' (' . esc($currentUser['email']) . ')</p>'
+                    . '<p><strong>Total:</strong> ' . number_format((float)$total, 2) . ' VES</p>'
+                    . '<p><strong>Pago:</strong> ' . esc($selectedPayment) . '</p>'
+                    . '<p><strong>Referencia:</strong> ' . esc($transferReference) . '</p>'
+                    . '<p><strong>Comprobante:</strong> ' . esc($proofPath) . '</p>'
+                    . '<p><strong>Entrega:</strong> ' . esc($selectedDelivery) . '</p>';
+                $text = 'Cliente confirmó un pedido' . "\n"
+                    . 'Pedido: #' . (int)$orderId . "\n"
+                    . 'Cliente: ' . $currentUser['name'] . ' (' . $currentUser['email'] . ')' . "\n"
+                    . 'Total: ' . number_format((float)$total, 2) . ' VES' . "\n"
+                    . 'Pago: ' . $selectedPayment . "\n"
+                    . 'Referencia: ' . $transferReference . "\n"
+                    . 'Comprobante: ' . $proofPath . "\n"
+                    . 'Entrega: ' . $selectedDelivery;
+                send_smtp_mail($adminEmail, 'Administrador', $subject, $html, $text);
+            }
+
             cart_set_items(array());
             $message = 'Pedido registrado correctamente. Tu numero de pedido es #' . $orderId;
         }
@@ -118,7 +166,37 @@ class CheckoutController extends Controller
             'selectedPayment' => $selectedPayment,
             'selectedDelivery' => $selectedDelivery,
             'notes' => $notes,
+            'transferReference' => $transferReference,
         ));
+    }
+
+    private function storePaymentProof($file)
+    {
+        if (!is_array($file) || !isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+            return array('ok' => false, 'error' => 'Debes cargar una imagen de comprobante en formato JPG o PNG.', 'path' => '');
+        }
+
+        $originalName = isset($file['name']) ? (string)$file['name'] : '';
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        $allowedExtensions = array('jpg', 'jpeg', 'png');
+        if (!in_array($extension, $allowedExtensions, true)) {
+            return array('ok' => false, 'error' => 'Formato de comprobante no valido. Solo se permite .jpg, .jpeg y .png.', 'path' => '');
+        }
+
+        $uploadDir = dirname(__DIR__, 2) . '/uploads/payment_proofs';
+        if (!is_dir($uploadDir)) {
+            @mkdir($uploadDir, 0777, true);
+        }
+
+        $safeBaseName = preg_replace('/[^a-zA-Z0-9._-]/', '_', pathinfo($originalName, PATHINFO_FILENAME));
+        $targetName = uniqid('proof_', true) . '_' . $safeBaseName . '.' . $extension;
+        $targetPath = $uploadDir . '/' . $targetName;
+
+        if (!@move_uploaded_file($file['tmp_name'], $targetPath)) {
+            return array('ok' => false, 'error' => 'No se pudo guardar la imagen del comprobante. Intenta nuevamente.', 'path' => '');
+        }
+
+        return array('ok' => true, 'error' => '', 'path' => '/uploads/payment_proofs/' . $targetName);
     }
 
     private function getPaymentDetails()

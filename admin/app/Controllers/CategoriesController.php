@@ -7,7 +7,7 @@ class CategoriesController extends BaseController
     {
         require_admin_login();
         $model = new CategoryModel();
-        $model->reassignUncategorizedProductsToVarios();
+        $model->reassignUncategorizedProductsToGeneral();
 
         $message = '';
         $editId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
@@ -41,13 +41,13 @@ class CategoriesController extends BaseController
                 $id = isset($_POST['category_id']) ? (int)$_POST['category_id'] : 0;
                 $categoryToDelete = $model->findById($id);
                 if ($id > 0 && $categoryToDelete) {
-                    if (mb_strtolower(trim($categoryToDelete['name']), 'UTF-8') === 'varios') {
-                        $message = 'La categoría "Varios" no se puede eliminar.';
+                    if (mb_strtolower(trim($categoryToDelete['name']), 'UTF-8') === 'general') {
+                        $message = 'La categoría "General" no se puede eliminar.';
                     } else {
-                        $variosId = $model->getVariosCategoryId();
-                        $model->reassignProductsToCategory($id, $variosId);
+                        $generalId = $model->getGeneralCategoryId();
+                        $model->reassignProductsToCategory($id, $generalId);
                         $model->delete($id);
-                        $message = 'Categoría eliminada correctamente. Los productos fueron reasignados a "Varios".';
+                        $message = 'Categoría eliminada correctamente. Los productos fueron reasignados a "General".';
                         if ($editId === $id) {
                             $editId = 0;
                             $editingCategory = null;

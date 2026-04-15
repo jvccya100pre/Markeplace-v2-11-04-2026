@@ -52,6 +52,7 @@ class DashboardController extends BaseController
             'currentPhoneNumber' => $payment['currentPhoneNumber'],
             'currentBinance' => $payment['currentBinance'],
             'currentPaypal' => $payment['currentPaypal'],
+            'currentWholesaleEmails' => $payment['currentWholesaleEmails'],
             'currentRate' => $currentRate,
         ));
     }

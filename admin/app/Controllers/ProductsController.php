@@ -55,6 +55,36 @@ class ProductsController extends BaseController
             }
         }
 
+        if (is_post() && isset($_POST['toggle_hide_product'])) {
+            $id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+            if ($id > 0) {
+                $hiddenProducts = $this->getSettingIdList('hidden_product_ids');
+                if (in_array($id, $hiddenProducts, true)) {
+                    $hiddenProducts = array_values(array_diff($hiddenProducts, array($id)));
+                    $message = 'Producto visible en tienda nuevamente.';
+                } else {
+                    $hiddenProducts[] = $id;
+                    $message = 'Producto ocultado correctamente en tienda.';
+                }
+                set_setting('hidden_product_ids', implode(',', $hiddenProducts));
+            }
+        }
+
+        if (is_post() && isset($_POST['toggle_hide_stock'])) {
+            $id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+            if ($id > 0) {
+                $hiddenStockProducts = $this->getSettingIdList('hidden_stock_product_ids');
+                if (in_array($id, $hiddenStockProducts, true)) {
+                    $hiddenStockProducts = array_values(array_diff($hiddenStockProducts, array($id)));
+                    $message = 'Stock visible en tienda nuevamente.';
+                } else {
+                    $hiddenStockProducts[] = $id;
+                    $message = 'Stock ocultado correctamente en tienda.';
+                }
+                set_setting('hidden_stock_product_ids', implode(',', $hiddenStockProducts));
+            }
+        }
+
         if (is_post() && isset($_POST['import_products'])) {
             if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK) {
                 $importResult = $this->importProductsFromCsv($_FILES['csv_file']['tmp_name'], $productModel);
@@ -94,8 +124,29 @@ class ProductsController extends BaseController
             'search' => $search,
             'cats' => $cats,
             'formData' => $formData,
+            'hiddenProductIds' => $this->getSettingIdList('hidden_product_ids'),
+            'hiddenStockProductIds' => $this->getSettingIdList('hidden_stock_product_ids'),
             'rows' => $productModel->searchWithCategory($search),
         ));
+    }
+
+    private function getSettingIdList($key)
+    {
+        $raw = trim((string)get_setting($key, ''));
+        if ($raw === '') {
+            return array();
+        }
+
+        $parts = preg_split('/\s*,\s*/', $raw);
+        $ids = array();
+        foreach ($parts as $part) {
+            $id = (int)$part;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     private function normalizeProductPost($data, $editingProduct = null)

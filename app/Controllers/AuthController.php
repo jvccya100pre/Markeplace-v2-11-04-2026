@@ -82,6 +82,21 @@ class AuthController extends Controller
                 $sql = 'INSERT INTO ' . table_name('users') . ' (full_name, email, password_hash, role, created_at) VALUES (:n, :e, :p, :r, NOW())';
                 $stmt = db()->prepare($sql);
                 $stmt->execute(array(':n' => $name, ':e' => $email, ':p' => sha1($password), ':r' => 'cliente'));
+
+                $adminEmail = isset($GLOBALS['config']['mail']['from']) ? $GLOBALS['config']['mail']['from'] : get_setting('company_email', '');
+                if ($adminEmail !== '') {
+                    $subject = 'Nuevo cliente registrado';
+                    $html = '<h3>Nuevo registro de cliente</h3>'
+                        . '<p><strong>Nombre:</strong> ' . esc($name) . '</p>'
+                        . '<p><strong>Correo:</strong> ' . esc($email) . '</p>'
+                        . '<p><strong>Fecha:</strong> ' . date('d/m/Y H:i:s') . '</p>';
+                    $text = 'Nuevo registro de cliente' . "\n"
+                        . 'Nombre: ' . $name . "\n"
+                        . 'Correo: ' . $email . "\n"
+                        . 'Fecha: ' . date('d/m/Y H:i:s');
+                    send_smtp_mail($adminEmail, 'Administrador', $subject, $html, $text);
+                }
+
                 $msg = 'Cuenta creada. Ya puedes iniciar sesion.';
             }
         }

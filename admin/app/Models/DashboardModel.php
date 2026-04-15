@@ -42,6 +42,7 @@ class DashboardModel
         set_setting('pm_phone_number', trim($data['pm_phone_number']));
         set_setting('binance_uid', trim($data['binance_uid']));
         set_setting('paypal_email', trim($data['paypal_email']));
+        set_setting('wholesale_allowed_emails', trim(isset($data['wholesale_allowed_emails']) ? $data['wholesale_allowed_emails'] : ''));
     }
 
     public function getPaymentMethods()
@@ -54,6 +55,7 @@ class DashboardModel
             'currentPhoneNumber' => get_setting('pm_phone_number'),
             'currentBinance' => get_setting('binance_uid'),
             'currentPaypal' => get_setting('paypal_email'),
+            'currentWholesaleEmails' => get_setting('wholesale_allowed_emails', ''),
         );
     }
 

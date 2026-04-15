@@ -22,20 +22,34 @@ class CategoryModel
         return $st->fetch();
     }
 
-    public function getVariosCategoryId()
+    public function getGeneralCategoryId()
     {
-        $sql = 'SELECT id FROM ' . table_name('categories') . ' WHERE LOWER(name) = :name LIMIT 1';
+        $sql = 'SELECT id, name FROM ' . table_name('categories') . ' WHERE LOWER(name) IN (:general_in, :varios_in) ORDER BY FIELD(LOWER(name), :general_order, :varios_order) LIMIT 1';
         $st = db()->prepare($sql);
-        $st->execute(array(':name' => 'varios'));
+        $st->execute(array(
+            ':general_in' => 'general',
+            ':varios_in' => 'varios',
+            ':general_order' => 'general',
+            ':varios_order' => 'varios'
+        ));
         $row = $st->fetch();
         if ($row) {
+            if (mb_strtolower(trim($row['name']), 'UTF-8') !== 'general') {
+                $up = db()->prepare('UPDATE ' . table_name('categories') . ' SET name = :name WHERE id = :id');
+                $up->execute(array(':name' => 'General', ':id' => (int)$row['id']));
+            }
             return (int)$row['id'];
         }
 
         $sql = 'INSERT INTO ' . table_name('categories') . ' (name, is_active) VALUES (:name, 1)';
         $st = db()->prepare($sql);
-        $st->execute(array(':name' => 'Varios'));
+        $st->execute(array(':name' => 'General'));
         return (int)db()->lastInsertId();
+    }
+
+    public function getVariosCategoryId()
+    {
+        return $this->getGeneralCategoryId();
     }
 
     public function reassignProductsToCategory($fromCategoryId, $toCategoryId)
@@ -45,12 +59,17 @@ class CategoryModel
         $st->execute(array(':toId' => (int)$toCategoryId, ':fromId' => (int)$fromCategoryId));
     }
 
-    public function reassignUncategorizedProductsToVarios()
+    public function reassignUncategorizedProductsToGeneral()
     {
-        $variosId = $this->getVariosCategoryId();
+        $generalId = $this->getGeneralCategoryId();
         $sql = 'UPDATE ' . table_name('products') . ' SET category_id = :toId WHERE category_id IS NULL OR category_id = 0 OR category_id NOT IN (SELECT id FROM ' . table_name('categories') . ')';
         $st = db()->prepare($sql);
-        $st->execute(array(':toId' => (int)$variosId));
+        $st->execute(array(':toId' => (int)$generalId));
+    }
+
+    public function reassignUncategorizedProductsToVarios()
+    {
+        $this->reassignUncategorizedProductsToGeneral();
     }
 
     public function update($id, $name)

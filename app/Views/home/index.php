@@ -24,7 +24,11 @@
         </div>
         <div>
             <label>Total en carrito (<?php echo get_current_currency(); ?>)</label>
-            <input type="text" value="<?php echo number_format(get_current_currency() === 'USD' ? $cartTotal / get_exchange_rate() : $cartTotal, 2, '.', ''); ?>" readonly onclick="window.location.href='<?php echo esc(route_url('cart')); ?>'" title="Haz clic para ver el carrito" style="cursor:pointer;">
+            <?php if (!empty($isLoggedIn)): ?>
+                <input type="text" value="<?php echo number_format(get_current_currency() === 'USD' ? $cartTotal / get_exchange_rate() : $cartTotal, 2, '.', ''); ?>" readonly onclick="window.location.href='<?php echo esc(route_url('cart')); ?>'" title="Haz clic para ver el carrito" style="cursor:pointer;">
+            <?php else: ?>
+                <input type="text" value="Inicia sesión para ver precios" readonly style="cursor:not-allowed;">
+            <?php endif; ?>
         </div>
         <div>
             <button type="submit">Filtrar</button>
@@ -58,13 +62,15 @@
             'images' => array_values($images),
             'price' => format_price($basePrice),
             'priceWholesale' => isset($p['price_wholesale']) && $p['price_wholesale'] > 0 ? format_price($p['price_wholesale']) : '',
-            'showRetail' => isset($p['show_retail']) ? (bool)$p['show_retail'] : true,
-            'showWholesale' => isset($p['show_wholesale']) ? (bool)$p['show_wholesale'] : false,
+            'showRetail' => !empty($isLoggedIn) && (isset($p['show_retail']) ? (bool)$p['show_retail'] : true),
+            'showWholesale' => !empty($canSeeWholesale) && (isset($p['show_wholesale']) ? (bool)$p['show_wholesale'] : false),
             'allowNegative' => isset($p['allow_negative_stock']) ? (bool)$p['allow_negative_stock'] : false,
             'stock' => (int)$p['stock'],
+            'showStock' => !in_array((int)$p['id'], $hiddenStockProductIds, true),
             'color' => $p['color'],
             'code' => $p['internal_code'],
-            'name' => $p['name']
+            'name' => $p['name'],
+            'isLoggedIn' => !empty($isLoggedIn)
         );
         ?>
         <article class="card" data-name="<?php echo esc(mb_strtolower($p['name'], 'UTF-8')); ?>" data-price="<?php echo number_format((float)$basePrice, 2, '.', ''); ?>">
@@ -73,11 +79,15 @@
                 <h3><?php echo esc($p['name']); ?></h3>
                 <p><?php echo esc($p['description']); ?></p>
                 <p>Codigo: <?php echo esc($p['internal_code']); ?></p>
-                <p class="stock">Stock: <?php echo (int)$p['stock']; ?></p>
-                <?php if (!empty($p['show_retail'])): ?>
-                    <p>Precio detal: <?php echo format_price($basePrice); ?></p>
+                <?php if (!in_array((int)$p['id'], $hiddenStockProductIds, true)): ?>
+                    <p class="stock">Stock: <?php echo (int)$p['stock']; ?></p>
                 <?php endif; ?>
-                <?php if (!empty($p['show_wholesale']) && !empty($p['price_wholesale'])): ?>
+                <?php if (!empty($isLoggedIn) && !empty($p['show_retail'])): ?>
+                    <p>Precio detal: <?php echo format_price($basePrice); ?></p>
+                <?php elseif (empty($isLoggedIn)): ?>
+                    <p style="color:#a12622;font-weight:600;">Inicia sesión para ver los precios.</p>
+                <?php endif; ?>
+                <?php if (!empty($canSeeWholesale) && !empty($p['show_wholesale']) && !empty($p['price_wholesale'])): ?>
                     <p>Precio mayor: <?php echo format_price($p['price_wholesale']); ?></p>
                 <?php endif; ?>
                 <?php if (!empty($p['allow_negative_stock'])): ?>
@@ -164,7 +174,8 @@
             <h3>Detalle</h3>
             <p id="modalRetailPrice">Precio detal: VES <span id="mPrice"></span></p>
             <p id="modalWholesalePrice">Precio mayor: VES <span id="mPriceWholesale"></span></p>
-            <p>Cantidad disponible: <span id="mQty"></span></p>
+            <p id="modalStockLine">Cantidad disponible: <span id="mQty"></span></p>
+            <p id="modalLoginPriceInfo" style="display:none;color:#a12622;font-weight:600;">Inicia sesión para ver los precios.</p>
             <p>Color: <span id="mColor"></span></p>
             <hr>
             <p>Codigo: <span id="mCode"></span></p>

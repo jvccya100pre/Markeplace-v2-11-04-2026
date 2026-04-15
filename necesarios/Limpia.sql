@@ -11,7 +11,7 @@ CREATE TABLE `no_borrar_markeplacev1_categories` (
 -- Datos de la tabla `no_borrar_markeplacev1_categories`
 INSERT INTO `no_borrar_markeplacev1_categories` VALUES ('1', 'Libros', '1');
 INSERT INTO `no_borrar_markeplacev1_categories` VALUES ('2', 'Papeleria', '1');
-INSERT INTO `no_borrar_markeplacev1_categories` VALUES ('3', 'Varios', '1');
+INSERT INTO `no_borrar_markeplacev1_categories` VALUES ('3', 'General', '1');
 
 
 -- Estructura de la tabla `no_borrar_markeplacev1_contact_messages`

@@ -1,0 +1,15 @@
+Crear libreria PHPMailer para "Version de php 8.0.1"
+Usar las credenciales 
+Email = "info@tutiendaonlinelq.com" 
+pass = "Losteques.2026"
+       SMTP = mail.tutiendaonlinelq.com
+       PORT = 465
+       SMTPS = ssl
+       SMTPUSR = info@tutiendaonlinelq.com
+       SMTPPASS = Losteques.2026.
+       From = info@tutiendaonlinelq.com
+       basepath = http://mail.tutiendaonlinelq.com.
+
+1- Enviar correo cada vez que un cliente se "registre"
+
+2- Enviar correo cada vez que un cliente "confirme un pedido"

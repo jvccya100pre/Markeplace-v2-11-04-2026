@@ -7,7 +7,7 @@
         <?php if (!empty($error)): ?>
             <p style="color:#a12622;font-weight:600;"><?php echo esc($error); ?></p>
         <?php endif; ?>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             <label>Metodo de pago</label>
             <select name="payment_method" id="payment_method" required>
                 <option value="deposito bancario" <?php echo $selectedPayment === 'deposito bancario' ? 'selected' : ''; ?>>Deposito bancario</option>
@@ -23,8 +23,12 @@
                 <option value="delivery" <?php echo $selectedDelivery === 'delivery' ? 'selected' : ''; ?>>Delivery</option>
             </select>
             <?php endif; ?>
+            <label>Comprobante de pago (JPG o PNG)</label>
+            <input type="file" name="payment_proof" accept="image/jpeg,image/png" required>
+            <label>Ultimos digitos de transferencia</label>
+            <input type="text" name="transfer_reference" maxlength="40" placeholder="indicar los ultimos digitos de la transferencia" value="<?php echo esc($transferReference); ?>" required>
             <label>Notas</label>
-            <textarea name="notes" rows="4"><?php echo esc($notes); ?></textarea>
+            <textarea name="notes" rows="4" placeholder="Por favor indique si desea variantes de productos como color, tamaño o metros. tambien indique el metodo de retiro de la compra. Personal Delivery(Costo adicional), O encomienda cobro destino. Nota: compra se envia productos despues de confirmado los depositos."><?php echo esc($notes); ?></textarea>
             <button type="submit">Confirmar pago</button>
         </form>
         <script>
