@@ -11,7 +11,7 @@ Separador de columnnas ";" (punto y coma)
 
 La insercion seria exactamente con esta consulta:
 
-INSERT INTO `createso_datosVPS`.`demo_markeplacev1_products` 
+INSERT INTO `createso_datosVPS`.`no_borrar_markeplacev1_products` 
 (`category_id`, `name`, `description`, `internal_code`, `stock`, `color`, `price`, `image_path`, `created_at`, `price_retail`, `price_wholesale`, `show_retail`, `show_wholesale`, `allow_negative_stock`, `gallery_mode`) VALUES 
 (1, '@Descripción', '@Descripción', '@Código', 456, 0, '@ves', '', DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'), 0,	0,	1,	1,	0,	'single');
 

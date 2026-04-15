@@ -8,11 +8,11 @@ date_default_timezone_set('America/Caracas');
 $config = array(
     'db' => array(
         'host' => 'localhost',
-        'name' => 'createso_datosVPS',
+        'name' => 'createso__no_borrar_tutiendaonlinelq_donato',
         'user' => 'createso_vpsdatos',
         'pass' => 'Tresado37#',
         'charset' => 'utf8mb4',
-        'prefix' => 'demo_markeplacev1_'
+        'prefix' => 'no_borrar_markeplacev1_'
     ),
     'base_path' => '',
     'captcha_public' => '6LdpnLcsAAAAAP4WgOwpDgB6NKk-nTIsvQhgd2S4',

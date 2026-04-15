@@ -73,12 +73,12 @@ Este repositorio contiene un sitio web de e-commerce simple con panel administra
 ## Base de datos
 
 ### Tablas importantes
-- `demo_markeplacev1_products`: Productos con columnas de precio, stock, galería y delivery.
-- `demo_markeplacev1_orders`: Pedidos con posible `seller_id` y `delivery_method`.
-- `demo_markeplacev1_sellers`: Vendedores.
-- `demo_markeplacev1_testimonials`: Testimonios de clientes.
-- `demo_markeplacev1_exchange_rates`: Tasa USD a VES por fecha.
-- `demo_markeplacev1_settings`: Configuración general del sitio.
+- `no_borrar_markeplacev1_products`: Productos con columnas de precio, stock, galería y delivery.
+- `no_borrar_markeplacev1_orders`: Pedidos con posible `seller_id` y `delivery_method`.
+- `no_borrar_markeplacev1_sellers`: Vendedores.
+- `no_borrar_markeplacev1_testimonials`: Testimonios de clientes.
+- `no_borrar_markeplacev1_exchange_rates`: Tasa USD a VES por fecha.
+- `no_borrar_markeplacev1_settings`: Configuración general del sitio.
 
 ### Scripts SQL
 - `necesarios/schema-update.sql`: Migra la base de datos para nuevas tablas y columnas.

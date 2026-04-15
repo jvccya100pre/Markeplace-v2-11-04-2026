@@ -1,7 +1,7 @@
 -- Migra la base de datos para las nuevas mejoras.
 -- Reemplaza el prefijo si tu instalación usa uno diferente.
 
-ALTER TABLE `demo_markeplacev1_products`
+ALTER TABLE `no_borrar_markeplacev1_products`
   ADD COLUMN `price_retail` DECIMAL(10,2) NOT NULL DEFAULT '0.00',
   ADD COLUMN `price_wholesale` DECIMAL(10,2) NOT NULL DEFAULT '1',
   ADD COLUMN `show_retail` TINYINT(1) NOT NULL DEFAULT '1',
@@ -10,11 +10,11 @@ ALTER TABLE `demo_markeplacev1_products`
   ADD COLUMN `gallery_mode` VARCHAR(20) NOT NULL DEFAULT 'single',
   ADD COLUMN `delivery_enabled` TINYINT(1) NOT NULL DEFAULT '0';
 
-ALTER TABLE `demo_markeplacev1_orders`
+ALTER TABLE `no_borrar_markeplacev1_orders`
   ADD COLUMN `seller_id` INT NULL DEFAULT NULL,
   ADD COLUMN `delivery_method` VARCHAR(50) NULL DEFAULT NULL;
 
-CREATE TABLE IF NOT EXISTS `demo_markeplacev1_sellers` (
+CREATE TABLE IF NOT EXISTS `no_borrar_markeplacev1_sellers` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `full_name` VARCHAR(191) NOT NULL,
   `email` VARCHAR(191) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `demo_markeplacev1_sellers` (
   UNIQUE KEY `idx_link_token` (`link_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `demo_markeplacev1_testimonials` (
+CREATE TABLE IF NOT EXISTS `no_borrar_markeplacev1_testimonials` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
   `message` TEXT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `demo_markeplacev1_testimonials` (
   KEY `idx_approved` (`approved`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `demo_markeplacev1_exchange_rates` (
+CREATE TABLE IF NOT EXISTS `no_borrar_markeplacev1_exchange_rates` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `date` DATE NOT NULL,
   `usd_to_ves` DECIMAL(10,2) NOT NULL,
