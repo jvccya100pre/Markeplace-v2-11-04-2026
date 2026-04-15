@@ -1,16 +1,9 @@
 <?php
-require_once 'app/bootstrap.php';
+require_once __DIR__ . '/includes/bootstrap.php';
 
-$controller = new TestimonialController($db);
-
-$action = $_GET['action'] ?? 'index';
-
-switch ($action) {
-    case 'create':
-        $controller->create();
-        break;
-    default:
-        $controller->index();
-        break;
+$action = isset($_GET['action']) ? trim($_GET['action']) : 'index';
+if ($action === 'create') {
+    redirect_to(route_url('testimonial_create'));
 }
-?>
+
+redirect_to(route_url('testimonial'));

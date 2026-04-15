@@ -1,20 +1,6 @@
 <?php
-require_once 'app/bootstrap.php';
+require_once __DIR__ . '/app/bootstrap.php';
+require_once __DIR__ . '/app/Controllers/TestimonialsController.php';
 
-$controller = new TestimonialsController($db);
-
-$action = $_GET['action'] ?? 'index';
-$id = $_GET['id'] ?? null;
-
-switch ($action) {
-    case 'approve':
-        $controller->approve($id);
-        break;
-    case 'reject':
-        $controller->reject($id);
-        break;
-    default:
-        $controller->index();
-        break;
-}
-?>
+$controller = new TestimonialsController();
+$controller->handle();

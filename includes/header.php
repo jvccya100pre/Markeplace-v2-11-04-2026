@@ -52,7 +52,6 @@ $cartCount = count(cart_session_items());
             <div class="menu-links">
                 <a href="<?php echo esc(route_url('home')); ?>">Inicio</a>
                 <a href="<?php echo esc(route_url('catalog_pdf')); ?>">Descargar catalogo PDF</a>
-                <a href="<?php echo esc(route_url('home')); ?>">Catalogo de productos</a>
                 <a href="testimonial.php">Testimonios</a>
                 <?php if ($u): ?>
                     <a href="<?php echo esc(app_url('/index.php')); ?>">Mi panel</a>

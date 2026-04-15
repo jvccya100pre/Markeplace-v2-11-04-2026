@@ -5,10 +5,19 @@ class LoginController extends BaseController
 {
     public function handle()
     {
+        $message = '';
+
         if (isset($_GET['logout']) && (string)$_GET['logout'] === '1') {
-            unset($_SESSION['admin'], $_SESSION['user']);
+            logout_user_session();
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+                session_start();
+            }
             session_regenerate_id(true);
-            redirect_to(app_url('/login.php'));
+            redirect_to(app_url('/login.php?logged_out=1'));
+        }
+
+        if (!is_post() && isset($_GET['logged_out']) && (string)$_GET['logged_out'] === '1') {
+            $message = 'Sesion cerrada correctamente.';
         }
 
         $model = new AuthModel();
@@ -24,8 +33,10 @@ class LoginController extends BaseController
             } else {
                 $user = $model->findAdminByEmail($email);
                 if ($user && $user['password_hash'] === sha1($password)) {
+                    session_regenerate_id(true);
                     $_SESSION['admin'] = array('id' => $user['id'], 'name' => $user['full_name'], 'email' => $user['email']);
                     $_SESSION['user'] = $_SESSION['admin'];
+                    $_SESSION['last_activity'] = time();
                     redirect_to(app_url('/index.php'));
                 }
 
@@ -33,6 +44,6 @@ class LoginController extends BaseController
             }
         }
 
-        $this->render('login', array('error' => $error), false);
+        $this->render('login', array('error' => $error, 'message' => $message), false);
     }
 }

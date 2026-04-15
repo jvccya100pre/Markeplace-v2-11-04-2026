@@ -1,56 +1,74 @@
 <?php
-require_once __DIR__ . '/../../admin/app/Models/TestimonialModel.php';
+require_once __DIR__ . '/../Models/TestimonialModel.php';
 
-class TestimonialController extends Controller {
+class TestimonialController extends Controller
+{
     private $testimonialModel;
 
-    public function __construct($db) {
-        parent::__construct($db);
-        $this->testimonialModel = new TestimonialModel($db);
-    }
-
-    public function index() {
-        $testimonials = $this->testimonialModel->getApproved();
-        $this->render('testimonial/index', ['testimonials' => $testimonials]);
-    }
-
-    public function create() {
-        if (!auth_user()) {
-            $this->redirect('/login.php');
+    private function testimonialModel()
+    {
+        if ($this->testimonialModel === null) {
+            $this->testimonialModel = new TestimonialModel();
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $message = $_POST['message'] ?? '';
+        return $this->testimonialModel;
+    }
+
+    public function index()
+    {
+        $testimonials = table_exists('testimonials') ? $this->testimonialModel()->getApproved() : array();
+        $this->render('testimonial/index', array('testimonials' => $testimonials));
+    }
+
+    public function create()
+    {
+        require_user_login();
+
+        $error = '';
+        $success = !is_post() && isset($_GET['success']) && (string)$_GET['success'] === '1';
+
+        if (is_post()) {
+            $message = isset($_POST['message']) ? trim($_POST['message']) : '';
             $photo = $this->uploadPhoto();
 
-            if ($message && $photo) {
-                $userId = auth_user()['id'];
-                if ($this->testimonialModel->create($userId, $message, $photo)) {
-                    $this->redirect('/testimonial.php?success=1');
-                } else {
-                    $error = 'Error al guardar el testimonio.';
-                }
-            } else {
+            if ($message === '' || $photo === null) {
                 $error = 'Mensaje y foto son obligatorios.';
+            } else {
+                $user = auth_user();
+                if ($user && $this->testimonialModel()->create((int)$user['id'], $message, $photo)) {
+                    redirect_to(route_url('testimonial_create', array('success' => 1)));
+                }
+
+                $error = 'Error al guardar el testimonio.';
             }
         }
 
-        $this->render('testimonial/create', ['error' => $error ?? null]);
+        $this->render('testimonial/create', array('error' => $error, 'success' => $success));
     }
 
-    private function uploadPhoto() {
-        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = 'uploads/testimonials/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-            $fileName = uniqid() . '_' . basename($_FILES['photo']['name']);
-            $filePath = $uploadDir . $fileName;
-            if (move_uploaded_file($_FILES['photo']['tmp_name'], $filePath)) {
-                return $filePath;
-            }
+    private function uploadPhoto()
+    {
+        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+            return null;
         }
-        return null;
+
+        $uploadDir = __DIR__ . '/../../uploads/testimonials';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+        $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif', 'webp');
+        if ($extension === '' || !in_array($extension, $allowedExtensions, true)) {
+            return null;
+        }
+
+        $fileName = uniqid('testimonial_', true) . '.' . $extension;
+        $filePath = $uploadDir . '/' . $fileName;
+        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $filePath)) {
+            return null;
+        }
+
+        return app_url('/uploads/testimonials/' . $fileName);
     }
 }
-?>

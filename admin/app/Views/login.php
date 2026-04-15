@@ -11,6 +11,7 @@
 <body>
 <section class="panel" style="max-width:520px;margin:30px auto;">
     <h1>Iniciar sesion admin</h1>
+    <?php if (!empty($message)): ?><p style="color:#0a6e2f"><?php echo esc($message); ?></p><?php endif; ?>
     <?php if ($error): ?><p style="color:#a10f0f"><?php echo esc($error); ?></p><?php endif; ?>
     <form method="post">
         <label>Correo</label>

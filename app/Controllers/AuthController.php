@@ -6,9 +6,14 @@ class AuthController extends Controller
     public function login()
     {
         $error = '';
+        $message = '';
 
         if (!is_post() && isset($_GET['timeout'])) {
             $error = 'Tu sesión ha expirado por inactividad. Por favor inicia sesión de nuevo.';
+        }
+
+        if (!is_post() && isset($_GET['logged_out'])) {
+            $message = 'Sesion cerrada correctamente.';
         }
 
         if (is_post()) {
@@ -19,7 +24,7 @@ class AuthController extends Controller
             $captcha = $this->verifyCaptcha($captchaToken);
             if (!$captcha['ok']) {
                 $error = 'Captcha invalido. Intenta nuevamente.';
-                $this->render('auth/login', array('error' => $error));
+                $this->render('auth/login', array('error' => $error, 'message' => $message));
                 return;
             }
 
@@ -29,11 +34,13 @@ class AuthController extends Controller
             $user = $stmt->fetch();
 
             if ($user && $user['password_hash'] === sha1($password)) {
+                session_regenerate_id(true);
                 $_SESSION['user'] = array(
                     'id' => $user['id'],
                     'name' => $user['full_name'],
                     'email' => $user['email']
                 );
+                $_SESSION['last_activity'] = time();
                 if ($user['role'] === 'admin') {
                     $_SESSION['admin'] = $_SESSION['user'];
                 }
@@ -44,7 +51,17 @@ class AuthController extends Controller
             $error = 'Credenciales invalidas';
         }
 
-        $this->render('auth/login', array('error' => $error));
+        $this->render('auth/login', array('error' => $error, 'message' => $message));
+    }
+
+    public function logout()
+    {
+        logout_user_session();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        session_regenerate_id(true);
+        redirect_to(route_url('login', array('logged_out' => 1)));
     }
 
     public function register()
