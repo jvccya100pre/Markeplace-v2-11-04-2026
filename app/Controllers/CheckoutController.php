@@ -6,6 +6,7 @@ class CheckoutController extends Controller
     public function index()
     {
         require_user_login();
+        $currentUser = auth_user();
 
         $items = cart_session_items();
         if (!count($items)) {
@@ -14,11 +15,19 @@ class CheckoutController extends Controller
 
         $ids = implode(',', array_map('intval', array_keys($items)));
         $productColumns = 'id, price, stock';
+        if (column_exists('products', 'allow_negative_stock')) {
+            $productColumns .= ', allow_negative_stock';
+        }
         if (column_exists('products', 'delivery_enabled')) {
             $productColumns .= ', delivery_enabled';
         }
         $productSql = 'SELECT ' . $productColumns . ' FROM ' . table_name('products') . ' WHERE id IN (' . $ids . ')';
         $products = db()->query($productSql)->fetchAll();
+
+        $paymentDetails = $this->getPaymentDetails();
+        $selectedPayment = 'deposito bancario';
+        $selectedDelivery = 'personal';
+        $notes = '';
 
         $hasDelivery = false;
         foreach ($products as $p) {
@@ -29,7 +38,18 @@ class CheckoutController extends Controller
         }
 
         $message = '';
+        $error = '';
         if (is_post()) {
+            $selectedPayment = isset($_POST['payment_method']) ? trim($_POST['payment_method']) : 'deposito bancario';
+            $selectedDelivery = isset($_POST['delivery_method']) ? trim($_POST['delivery_method']) : 'personal';
+            $notes = isset($_POST['notes']) ? trim($_POST['notes']) : '';
+
+            if (!$this->hasPaymentDetails($selectedPayment, $paymentDetails)) {
+                $error = 'El metodo de pago seleccionado no tiene datos configurados. Contacta al administrador o elige otro metodo.';
+            }
+        }
+
+        if (is_post() && $error === '') {
 
             $total = 0;
             foreach ($products as $p) {
@@ -43,13 +63,13 @@ class CheckoutController extends Controller
                 ':u' => $currentUser['id'],
                 ':t' => $total,
                 ':s' => 'pendiente',
-                ':pm' => $payment,
+                ':pm' => $selectedPayment,
                 ':n' => $notes
             );
             if (column_exists('orders', 'delivery_method')) {
                 $orderColumns .= ', delivery_method';
                 $orderValues .= ', :dm';
-                $params[':dm'] = $delivery;
+                $params[':dm'] = $selectedDelivery;
             }
             if (column_exists('orders', 'seller_id') && isset($_SESSION['seller_id']) && (int)$_SESSION['seller_id'] > 0) {
                 $orderColumns .= ', seller_id';
@@ -90,6 +110,55 @@ class CheckoutController extends Controller
             $message = 'Pedido registrado correctamente. Tu numero de pedido es #' . $orderId;
         }
 
-        $this->render('checkout/index', array('message' => $message, 'hasDelivery' => $hasDelivery));
+        $this->render('checkout/index', array(
+            'message' => $message,
+            'error' => $error,
+            'hasDelivery' => $hasDelivery,
+            'paymentDetails' => $paymentDetails,
+            'selectedPayment' => $selectedPayment,
+            'selectedDelivery' => $selectedDelivery,
+            'notes' => $notes,
+        ));
+    }
+
+    private function getPaymentDetails()
+    {
+        return array(
+            'deposito bancario' => array(
+                'label' => 'Deposito bancario',
+                'fields' => array(
+                    'Banco' => get_setting('pm_bank', ''),
+                    'Documento' => trim(get_setting('pm_identity_type', '') . ' ' . get_setting('pm_identity_number', '')),
+                    'Telefono' => trim(get_setting('pm_phone_prefix', '') . ' ' . get_setting('pm_phone_number', '')),
+                ),
+            ),
+            'paypal' => array(
+                'label' => 'Paypal',
+                'fields' => array(
+                    'Correo' => get_setting('paypal_email', ''),
+                ),
+            ),
+            'binance' => array(
+                'label' => 'Binance',
+                'fields' => array(
+                    'UID o correo' => get_setting('binance_uid', ''),
+                ),
+            ),
+        );
+    }
+
+    private function hasPaymentDetails($paymentMethod, $paymentDetails)
+    {
+        if (!isset($paymentDetails[$paymentMethod])) {
+            return false;
+        }
+
+        foreach ($paymentDetails[$paymentMethod]['fields'] as $value) {
+            if (trim((string)$value) !== '') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

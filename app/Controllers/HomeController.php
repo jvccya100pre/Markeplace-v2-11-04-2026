@@ -64,6 +64,7 @@ class HomeController extends Controller
 
         $search = isset($_GET['search']) ? trim($_GET['search']) : '';
         $category = isset($_GET['category']) ? (int)$_GET['category'] : 0;
+        $sort = isset($_GET['sort']) ? trim($_GET['sort']) : 'alphabetical';
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
         $perPage = 25;
         $offset = ($page - 1) * $perPage;
@@ -88,11 +89,23 @@ class HomeController extends Controller
         $totalPages = max(1, (int)ceil($totalItems / $perPage));
 
         $productColumns = 'p.*';
+        $orderBy = ' ORDER BY p.name ASC';
         if (column_exists('products', 'price_retail')) {
             $productColumns = 'p.*, p.price_retail, p.price_wholesale, p.show_retail, p.show_wholesale, p.allow_negative_stock, p.gallery_mode';
+            if ($sort === 'price_low') {
+                $orderBy = ' ORDER BY (CASE WHEN p.price_retail > 0 THEN p.price_retail ELSE p.price END) ASC, p.name ASC';
+            } elseif ($sort === 'price_high') {
+                $orderBy = ' ORDER BY (CASE WHEN p.price_retail > 0 THEN p.price_retail ELSE p.price END) DESC, p.name ASC';
+            }
+        } else {
+            if ($sort === 'price_low') {
+                $orderBy = ' ORDER BY p.price ASC, p.name ASC';
+            } elseif ($sort === 'price_high') {
+                $orderBy = ' ORDER BY p.price DESC, p.name ASC';
+            }
         }
 
-        $listSql = 'SELECT ' . $productColumns . ', c.name AS category_name FROM ' . table_name('products') . ' p INNER JOIN ' . table_name('categories') . ' c ON c.id = p.category_id' . $where . ' ORDER BY p.id DESC LIMIT ' . (int)$offset . ', ' . (int)$perPage;
+        $listSql = 'SELECT ' . $productColumns . ', c.name AS category_name FROM ' . table_name('products') . ' p INNER JOIN ' . table_name('categories') . ' c ON c.id = p.category_id' . $where . $orderBy . ' LIMIT ' . (int)$offset . ', ' . (int)$perPage;
         $listSt = db()->prepare($listSql);
         $listSt->execute($params);
         $products = $listSt->fetchAll();
@@ -117,6 +130,7 @@ class HomeController extends Controller
             'categories' => $categories,
             'category' => $category,
             'search' => $search,
+            'sort' => $sort,
             'page' => $page,
             'totalPages' => $totalPages,
             'cartTotal' => $cartTotal,

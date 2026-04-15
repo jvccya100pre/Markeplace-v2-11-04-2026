@@ -14,6 +14,14 @@
             <input type="text" name="search" value="<?php echo esc($search); ?>">
         </div>
         <div>
+            <label>Ordenar items</label>
+            <select name="sort">
+                <option value="alphabetical" <?php echo $sort === 'alphabetical' ? 'selected' : ''; ?>>Alfabeticamente</option>
+                <option value="price_low" <?php echo $sort === 'price_low' ? 'selected' : ''; ?>>Precio mas bajo</option>
+                <option value="price_high" <?php echo $sort === 'price_high' ? 'selected' : ''; ?>>Precio mas alto</option>
+            </select>
+        </div>
+        <div>
             <label>Total en carrito (<?php echo get_current_currency(); ?>)</label>
             <input type="text" value="<?php echo number_format(get_current_currency() === 'USD' ? $cartTotal / get_exchange_rate() : $cartTotal, 2, '.', ''); ?>" readonly onclick="window.location.href='<?php echo esc(route_url('cart')); ?>'" title="Haz clic para ver el carrito" style="cursor:pointer;">
         </div>
@@ -84,15 +92,15 @@
 </section>
 
 <div class="pagination">
-    <a href="<?php echo esc(route_url('home', array('page' => 1, 'category' => (int)$category, 'search' => $search))); ?>">Primera</a>
+    <a href="<?php echo esc(route_url('home', array('page' => 1, 'category' => (int)$category, 'search' => $search, 'sort' => $sort))); ?>">Primera</a>
     <?php for ($i = 1; $i <= min(10, $totalPages); $i++): ?>
         <?php if ($i === $page): ?>
             <span class="active"><?php echo $i; ?></span>
         <?php else: ?>
-            <a href="<?php echo esc(route_url('home', array('page' => $i, 'category' => (int)$category, 'search' => $search))); ?>"><?php echo $i; ?></a>
+            <a href="<?php echo esc(route_url('home', array('page' => $i, 'category' => (int)$category, 'search' => $search, 'sort' => $sort))); ?>"><?php echo $i; ?></a>
         <?php endif; ?>
     <?php endfor; ?>
-    <a href="<?php echo esc(route_url('home', array('page' => (int)$totalPages, 'category' => (int)$category, 'search' => $search))); ?>">Ultima</a>
+    <a href="<?php echo esc(route_url('home', array('page' => (int)$totalPages, 'category' => (int)$category, 'search' => $search, 'sort' => $sort))); ?>">Ultima</a>
 </div>
 
 <section class="panel">
