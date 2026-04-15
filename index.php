@@ -13,6 +13,7 @@ $router = new Router();
 $router->get('home', array('HomeController', 'index'));
 $router->get('login', array('AuthController', 'login'));
 $router->get('register', array('AuthController', 'register'));
+$router->get('confirm_email', array('AuthController', 'confirmEmail'));
 $router->get('logout', array('AuthController', 'logout'));
 $router->get('cart', array('CartController', 'index'));
 $router->get('checkout', array('CheckoutController', 'index'));

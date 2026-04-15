@@ -20,5 +20,12 @@
         <?php endif; ?>
         <button type="submit">Ingresar</button>
     </form>
+    <form method="post" style="margin-top:12px;padding-top:12px;border-top:1px solid #ddd;">
+        <input type="hidden" name="resend_verification" value="1">
+        <label>¿No recibiste el correo de confirmacion?</label>
+        <input type="email" name="resend_email" placeholder="Tu correo registrado" required>
+        <button type="submit">Reenviar confirmacion</button>
+        <small style="display:block;margin-top:8px;color:#555;">Maximo 3 envios por cuenta, con espera de 5 minutos entre intentos.</small>
+    </form>
     <p><a href="<?php echo esc(route_url('register')); ?>">No tienes cuenta? Registrate</a></p>
 </section>
