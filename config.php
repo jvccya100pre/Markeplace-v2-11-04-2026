@@ -16,9 +16,7 @@ $config = array(
     ),
     'base_path' => '',
     'captcha_public' => '6LdpnLcsAAAAAP4WgOwpDgB6NKk-nTIsvQhgd2S4',
-    'captcha_secret' => '6LdpnLcsAAAAABiPFfqXyHD2aRgzUYxJ21rdMktA',
-    'google_oauth_client_id' => '',
-    'google_oauth_client_secret' => ''
+    'captcha_secret' => '6LdpnLcsAAAAABiPFfqXyHD2aRgzUYxJ21rdMktA'
 );
 
 function db()
@@ -235,11 +233,20 @@ function get_exchange_rate($date = null)
     if (!$date) {
         $date = date('Y-m-d');
     }
-    $sql = 'SELECT usd_to_ves FROM ' . table_name('exchange_rates') . ' WHERE date = :date LIMIT 1';
-    $st = db()->prepare($sql);
-    $st->execute(array(':date' => $date));
-    $row = $st->fetch();
-    return $row ? (float)$row['usd_to_ves'] : 1.0; // default 1 if no rate
+
+    if (!table_exists('exchange_rates')) {
+        return 1.0;
+    }
+
+    try {
+        $sql = 'SELECT usd_to_ves FROM ' . table_name('exchange_rates') . ' WHERE date = :date LIMIT 1';
+        $st = db()->prepare($sql);
+        $st->execute(array(':date' => $date));
+        $row = $st->fetch();
+        return $row ? (float)$row['usd_to_ves'] : 1.0;
+    } catch (Exception $e) {
+        return 1.0;
+    }
 }
 
 function format_price($price_in_ves, $currency = null)

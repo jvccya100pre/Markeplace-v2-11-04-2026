@@ -52,9 +52,12 @@ class CatalogController
 
     public function download2()
     {
-        $products = db()->query('SELECT name, internal_code, price_retail, price_wholesale, image_path FROM ' . table_name('products') . ' WHERE price_retail > 0 ORDER BY id DESC LIMIT 300')->fetchAll();
+        $products = db()->query('SELECT name, internal_code, price, price_retail, price_wholesale, image_path FROM ' . table_name('products') . ' WHERE (price_retail > 0 OR price > 0) ORDER BY id DESC LIMIT 300')->fetchAll();
         $date = date('Ymd_His');
         $filename = 'catalogo_usd_' . $date . '.pdf';
+        $rateInfo = $this->resolveExchangeRateInfo();
+        $exchangeRate = $rateInfo['rate'];
+        $rateDateLabel = $rateInfo['date_label'];
 
         $pdf = new FPDF('P', 'mm', 'A4');
         $pdf->SetAutoPageBreak(true, 15);
@@ -65,6 +68,7 @@ class CatalogController
         $pdf->SetFont('Arial', '', 11);
         $pdf->Cell(0, 8, 'WhatsApp: +58 412 016 1515', 0, 1, 'C');
         $pdf->Cell(0, 8, 'Catalogo en USD', 0, 1, 'C');
+        $pdf->Cell(0, 8, 'Tasa aplicada (' . $rateDateLabel . '): 1 USD = ' . number_format($exchangeRate, 2) . ' VES', 0, 1, 'C');
         $pdf->Cell(0, 8, 'Fecha: ' . date('d/m/Y H:i'), 0, 1, 'C');
         $pdf->Ln(5);
 
@@ -77,14 +81,12 @@ class CatalogController
         $col = 0;
 
         foreach ($products as $p) {
-            $usdRetail = $p['price_retail'] / get_exchange_rate();
-            $usdWholesale = $p['price_wholesale'] > 0 ? $p['price_wholesale'] / get_exchange_rate() : 0;
+            $baseRetail = isset($p['price_retail']) && (float)$p['price_retail'] > 0 ? (float)$p['price_retail'] : (float)$p['price'];
+            $usdRetail = $baseRetail / $exchangeRate;
+            $usdWholesale = $p['price_wholesale'] > 0 ? $p['price_wholesale'] / $exchangeRate : 0;
             $images = array_filter(array_map('trim', explode('|', $p['image_path'])));
             $imagePath = count($images) > 0 ? $images[0] : '/logo.jpg';
-            $filePath = $_SERVER['DOCUMENT_ROOT'] . '/' . ltrim($imagePath, '/');
-            if (!file_exists($filePath)) {
-                $filePath = $_SERVER['DOCUMENT_ROOT'] . '/logo.jpg';
-            }
+            $filePath = $this->resolveImageFilePath($imagePath);
 
             if ($col === 0) {
                 $x = $margin;
@@ -122,5 +124,61 @@ class CatalogController
     private function escapePdfText($value)
     {
         return str_replace(array('\\', '(', ')', "\r", "\n"), array('\\\\', '\\(', '\\)', '', ''), $value);
+    }
+
+    private function resolveImageFilePath($imagePath)
+    {
+        $relative = ltrim((string)$imagePath, '/');
+        $root = dirname(__DIR__, 2);
+
+        $candidates = array();
+        if (isset($_SERVER['DOCUMENT_ROOT']) && trim((string)$_SERVER['DOCUMENT_ROOT']) !== '') {
+            $docRoot = rtrim((string)$_SERVER['DOCUMENT_ROOT'], '/\\');
+            $candidates[] = $docRoot . DIRECTORY_SEPARATOR . $relative;
+            $candidates[] = $docRoot . DIRECTORY_SEPARATOR . 'logo.jpg';
+        }
+
+        $candidates[] = $root . DIRECTORY_SEPARATOR . $relative;
+        $candidates[] = $root . DIRECTORY_SEPARATOR . 'logo.jpg';
+
+        for ($i = 0; $i < count($candidates); $i++) {
+            if (is_file($candidates[$i])) {
+                return $candidates[$i];
+            }
+        }
+
+        return $root . DIRECTORY_SEPARATOR . 'logo.jpg';
+    }
+
+    private function resolveExchangeRateInfo()
+    {
+        $today = date('Y-m-d');
+        $todayRate = (float)get_exchange_rate($today);
+        if ($todayRate > 0) {
+            return array(
+                'rate' => $todayRate,
+                'date_label' => date('d/m/Y', strtotime($today)),
+            );
+        }
+
+        try {
+            $sql = 'SELECT date, usd_to_ves FROM ' . table_name('exchange_rates') . ' WHERE usd_to_ves > 0 ORDER BY date DESC LIMIT 1';
+            $row = db()->query($sql)->fetch();
+            if ($row && isset($row['usd_to_ves']) && (float)$row['usd_to_ves'] > 0) {
+                $rawDate = isset($row['date']) ? (string)$row['date'] : $today;
+                $timestamp = strtotime($rawDate);
+                return array(
+                    'rate' => (float)$row['usd_to_ves'],
+                    'date_label' => $timestamp ? date('d/m/Y', $timestamp) : $rawDate,
+                );
+            }
+        } catch (Exception $e) {
+            // Keep a safe fallback when exchange_rates table is unavailable.
+        }
+
+        return array(
+            'rate' => 1.0,
+            'date_label' => date('d/m/Y', strtotime($today)),
+        );
     }
 }

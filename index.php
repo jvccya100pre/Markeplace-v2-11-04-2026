@@ -13,11 +13,9 @@ $router->get('home', array('HomeController', 'index'));
 $router->get('login', array('AuthController', 'login'));
 $router->get('register', array('AuthController', 'register'));
 $router->get('logout', array('AuthController', 'logout'));
-$router->get('google_oauth', array('AuthController', 'googleOauth'));
-$router->get('google_oauth_callback', array('AuthController', 'googleOauthCallback'));
 $router->get('cart', array('CartController', 'index'));
 $router->get('checkout', array('CheckoutController', 'index'));
-$router->get('catalog_pdf', array('CatalogController', 'download'));
+$router->get('catalog_pdf', array('CatalogController', 'download2'));
 $router->get('catalog_pdf2', array('CatalogController', 'download2'));
 $router->get('send_contact', array('ContactController', 'send'));
 

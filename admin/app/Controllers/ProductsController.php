@@ -100,6 +100,13 @@ class ProductsController extends BaseController
 
     private function normalizeProductPost($data, $editingProduct = null)
     {
+        $data['price'] = $this->normalizeDecimal(isset($data['price']) ? $data['price'] : '0');
+        $data['price_retail'] = $this->normalizeDecimal(isset($data['price_retail']) ? $data['price_retail'] : '0');
+        $data['price_wholesale'] = $this->normalizeDecimal(isset($data['price_wholesale']) ? $data['price_wholesale'] : '0');
+        if ((float)$data['price_retail'] <= 0 && (float)$data['price'] > 0) {
+            $data['price_retail'] = $data['price'];
+        }
+
         $data['show_retail'] = isset($data['show_retail']) ? 1 : 0;
         $data['show_wholesale'] = isset($data['show_wholesale']) ? 1 : 0;
         $data['allow_negative_stock'] = isset($data['allow_negative_stock']) ? 1 : 0;
@@ -185,10 +192,19 @@ class ProductsController extends BaseController
             return $result;
         }
 
-        // Convertir de ISO-8859-1 a UTF-8 si es necesario
-        $header = array_map(function($h) {
-            return mb_convert_encoding($h, 'UTF-8', 'ISO-8859-1');
-        }, $header);
+        // Normalizar encabezado a UTF-8 preservando acentos y eñe.
+        foreach ($header as $k => $h) {
+            $h = (string)$h;
+            $h = preg_replace('/^\xEF\xBB\xBF/', '', $h);
+            $encoding = mb_detect_encoding($h, array('UTF-8', 'Windows-1252', 'ISO-8859-1'), true);
+            if ($encoding !== 'UTF-8') {
+                if ($encoding === false) {
+                    $encoding = 'Windows-1252';
+                }
+                $h = mb_convert_encoding($h, 'UTF-8', $encoding);
+            }
+            $header[$k] = $h;
+        }
 
         error_log("[" . date('Y-m-d H:i:s') . "] Encabezado leído: " . implode(';', $header) . "\n", 3, $logFile);
 
@@ -209,10 +225,19 @@ class ProductsController extends BaseController
         error_log("[" . date('Y-m-d H:i:s') . "] Posiciones mapeadas: " . print_r($positions, true) . "\n", 3, $logFile);
 
         while (($row = fgetcsv($handle, 0, ';')) !== false) {
-            // Convertir fila a UTF-8
-            $row = array_map(function($cell) {
-                return mb_convert_encoding($cell, 'UTF-8', 'ISO-8859-1');
-            }, $row);
+            // Normalizar fila a UTF-8 preservando acentos y eñe.
+            foreach ($row as $k => $cell) {
+                $cell = (string)$cell;
+                $cell = preg_replace('/^\xEF\xBB\xBF/', '', $cell);
+                $encoding = mb_detect_encoding($cell, array('UTF-8', 'Windows-1252', 'ISO-8859-1'), true);
+                if ($encoding !== 'UTF-8') {
+                    if ($encoding === false) {
+                        $encoding = 'Windows-1252';
+                    }
+                    $cell = mb_convert_encoding($cell, 'UTF-8', $encoding);
+                }
+                $row[$k] = $cell;
+            }
 
             $row = array_map('trim', $row);
             if (count(array_filter($row, 'strlen')) === 0) {
@@ -281,7 +306,17 @@ class ProductsController extends BaseController
                 return $index;
             }
         }
-
         return false;
+    }
+
+    private function normalizeDecimal($value)
+    {
+        $value = trim((string)$value);
+        if ($value === '') {
+            return '0.00';
+        }
+
+        $value = str_replace(',', '.', $value);
+        return number_format((float)$value, 2, '.', '');
     }
 }

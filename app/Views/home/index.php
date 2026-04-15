@@ -75,7 +75,7 @@
                 <form method="post">
                     <input type="hidden" name="product_id" value="<?php echo (int)$p['id']; ?>">
                     <label>Cantidad</label>
-                    <input type="number" min="1" max="<?php echo !empty($p['allow_negative_stock']) ? 9999 : (int)$p['stock']; ?>" value="1" name="qty">
+                    <input type="number" min="1" value="1" name="qty">
                     <button type="submit" name="add_cart" value="1" style="margin-top:10px;margin-bottom:10px;">Agregar al carrito</button>
                 </form>
             </div>

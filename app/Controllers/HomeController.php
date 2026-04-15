@@ -15,10 +15,6 @@ class HomeController extends Controller
         }
 
         if (is_post() && isset($_POST['add_cart'])) {
-            if (!auth_user()) {
-                redirect_to(route_url('login', array('next' => route_url('home'))));
-            }
-
             $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
             $qty = isset($_POST['qty']) ? max(1, (int)$_POST['qty']) : 1;
 

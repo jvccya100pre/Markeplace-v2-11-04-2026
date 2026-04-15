@@ -19,8 +19,5 @@
         <?php endif; ?>
         <button type="submit">Ingresar</button>
     </form>
-    <div style="margin:14px 0; text-align:center;">
-        <a class="btn btn-alt" href="<?php echo esc(route_url('google_oauth', array('next' => isset($_GET['next']) ? $_GET['next'] : ''))); ?>" style="display:inline-block; width:auto; padding: 10px 14px;">Iniciar sesión con Google</a>
-    </div>
     <p><a href="<?php echo esc(route_url('register')); ?>">No tienes cuenta? Registrate</a></p>
 </section>
