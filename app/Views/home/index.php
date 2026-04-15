@@ -1,5 +1,6 @@
 <section class="panel">
     <form method="get" class="filters" action="<?php echo esc(route_url('home')); ?>">
+        <input type="hidden" name="letter" id="selectedLetterInput" value="<?php echo esc($letter); ?>">
         <div>
             <label>Categoria</label>
             <select name="category">
@@ -96,15 +97,15 @@
 <p id="emptyLetterResult" style="display:none;margin:12px 0;color:#7a1f1f;font-weight:600;">No hay items disponibles para esa letra en esta pagina.</p>
 
 <div class="pagination">
-    <a href="<?php echo esc(route_url('home', array('page' => 1, 'category' => (int)$category, 'search' => $search, 'sort' => $sort))); ?>">Primera</a>
+    <a href="<?php echo esc(route_url('home', array('page' => 1, 'category' => (int)$category, 'search' => $search, 'sort' => $sort, 'letter' => $letter))); ?>">Primera</a>
     <?php for ($i = 1; $i <= min(10, $totalPages); $i++): ?>
         <?php if ($i === $page): ?>
             <span class="active"><?php echo $i; ?></span>
         <?php else: ?>
-            <a href="<?php echo esc(route_url('home', array('page' => $i, 'category' => (int)$category, 'search' => $search, 'sort' => $sort))); ?>"><?php echo $i; ?></a>
+            <a href="<?php echo esc(route_url('home', array('page' => $i, 'category' => (int)$category, 'search' => $search, 'sort' => $sort, 'letter' => $letter))); ?>"><?php echo $i; ?></a>
         <?php endif; ?>
     <?php endfor; ?>
-    <a href="<?php echo esc(route_url('home', array('page' => (int)$totalPages, 'category' => (int)$category, 'search' => $search, 'sort' => $sort))); ?>">Ultima</a>
+    <a href="<?php echo esc(route_url('home', array('page' => (int)$totalPages, 'category' => (int)$category, 'search' => $search, 'sort' => $sort, 'letter' => $letter))); ?>">Ultima</a>
 </div>
 
 <section class="panel">
@@ -186,12 +187,13 @@
     var grid = document.getElementById('productGrid');
     var letterFilter = document.getElementById('letterFilter');
     var emptyResult = document.getElementById('emptyLetterResult');
+    var letterInput = document.getElementById('selectedLetterInput');
     if (!sortSelect || !grid || !letterFilter) {
         return;
     }
 
     var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
-    var activeLetter = 'all';
+    var activeLetter = <?php echo $letter !== '' ? json_encode($letter) : json_encode('all'); ?>;
 
     function normalizeText(value) {
         return String(value || '')
@@ -204,7 +206,19 @@
     function getCardLetter(card) {
         var name = card.getAttribute('data-name') || '';
         var normalized = normalizeText(name);
-        return normalized ? normalized.charAt(0) : '#';
+        if (!normalized) {
+            return '#';
+        }
+
+        if (/^[0-9]/.test(normalized)) {
+            return '0-9';
+        }
+
+        if (!/^[A-ZÑ]/.test(normalized)) {
+            return '#';
+        }
+
+        return normalized.charAt(0);
     }
 
     function updatePaginationLinks() {
@@ -212,8 +226,24 @@
         for (var i = 0; i < links.length; i++) {
             var url = new URL(links[i].href, window.location.origin);
             url.searchParams.set('sort', sortSelect.value);
+            if (activeLetter !== 'all') {
+                url.searchParams.set('letter', activeLetter);
+            } else {
+                url.searchParams.delete('letter');
+            }
             links[i].href = url.toString();
         }
+    }
+
+    function updateCurrentUrl() {
+        var url = new URL(window.location.href);
+        url.searchParams.set('sort', sortSelect.value);
+        if (activeLetter !== 'all') {
+            url.searchParams.set('letter', activeLetter);
+        } else {
+            url.searchParams.delete('letter');
+        }
+        window.history.replaceState({}, '', url.toString());
     }
 
     function renderLetterButtons() {
@@ -222,7 +252,21 @@
             letters[getCardLetter(cards[i])] = true;
         }
 
-        var keys = Object.keys(letters).sort();
+        var keys = Object.keys(letters).sort(function (a, b) {
+            if (a === '0-9') {
+                return -1;
+            }
+            if (b === '0-9') {
+                return 1;
+            }
+            if (a === '#') {
+                return 1;
+            }
+            if (b === '#') {
+                return -1;
+            }
+            return a.localeCompare(b, 'es');
+        });
         var html = ['<button type="button" data-letter="all" style="padding:6px 10px;border:1px solid #d4d4d4;border-radius:999px;background:#fff;cursor:pointer;">Todos</button>'];
         for (var j = 0; j < keys.length; j++) {
             html.push('<button type="button" data-letter="' + keys[j] + '" style="padding:6px 10px;border:1px solid #d4d4d4;border-radius:999px;background:#fff;cursor:pointer;">' + keys[j] + '</button>');
@@ -256,7 +300,12 @@
             }
         }
         emptyResult.style.display = visibleCount === 0 ? 'block' : 'none';
+        if (letterInput) {
+            letterInput.value = activeLetter === 'all' ? '' : activeLetter;
+        }
         highlightActiveLetter();
+        updateCurrentUrl();
+        updatePaginationLinks();
     }
 
     function sortCards() {
@@ -279,11 +328,6 @@
         cards = sorted;
         renderLetterButtons();
         applyLetterFilter();
-
-        var url = new URL(window.location.href);
-        url.searchParams.set('sort', sortSelect.value);
-        window.history.replaceState({}, '', url.toString());
-        updatePaginationLinks();
     }
 
     sortSelect.addEventListener('change', sortCards);

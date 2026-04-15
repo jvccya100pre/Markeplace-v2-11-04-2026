@@ -65,6 +65,10 @@ class HomeController extends Controller
         $search = isset($_GET['search']) ? trim($_GET['search']) : '';
         $category = isset($_GET['category']) ? (int)$_GET['category'] : 0;
         $sort = isset($_GET['sort']) ? trim($_GET['sort']) : 'alphabetical';
+        $letter = isset($_GET['letter']) ? strtoupper(trim($_GET['letter'])) : '';
+        if ($letter !== '' && $letter !== '0-9' && $letter !== '#' && !preg_match('/^[A-ZÑ]$/', $letter)) {
+            $letter = '';
+        }
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
         $perPage = 25;
         $offset = ($page - 1) * $perPage;
@@ -78,6 +82,16 @@ class HomeController extends Controller
         if ($category > 0) {
             $filters[] = 'p.category_id = :cat';
             $params[':cat'] = $category;
+        }
+        if ($letter === '0-9') {
+            $filters[] = 'p.name REGEXP :letter_pattern';
+            $params[':letter_pattern'] = '^[0-9]';
+        } elseif ($letter === '#') {
+            $filters[] = 'p.name REGEXP :letter_pattern';
+            $params[':letter_pattern'] = '^[^A-Za-z0-9ÑñÁÉÍÓÚáéíóúÜü]';
+        } elseif ($letter !== '') {
+            $filters[] = 'p.name LIKE :letter';
+            $params[':letter'] = $letter . '%';
         }
         $where = count($filters) ? (' WHERE ' . implode(' AND ', $filters)) : '';
 
@@ -131,6 +145,7 @@ class HomeController extends Controller
             'category' => $category,
             'search' => $search,
             'sort' => $sort,
+            'letter' => $letter,
             'page' => $page,
             'totalPages' => $totalPages,
             'cartTotal' => $cartTotal,
