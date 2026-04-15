@@ -205,6 +205,29 @@ button, .btn {
 }
 .stock { color: #0c6a2f; font-weight: bold; }
 
+.letter-filter {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+}
+
+.letter-filter-link {
+    color: var(--corporate-color);
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    padding: 2px 0;
+}
+
+.letter-filter-link.is-active {
+    color: #111;
+    text-decoration: underline;
+}
+
 .pagination { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
 .pagination a, .pagination span {
     border: 1px solid rgba(105, 149, 212, 0.45);

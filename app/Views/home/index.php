@@ -1,5 +1,5 @@
 <section class="panel">
-    <form method="get" class="filters" action="<?php echo esc(route_url('home')); ?>">
+    <form method="get" class="filters" id="catalogFilters" action="<?php echo esc(route_url('home')); ?>">
         <input type="hidden" name="letter" id="selectedLetterInput" value="<?php echo esc($letter); ?>">
         <div>
             <label>Categoria</label>
@@ -42,7 +42,7 @@
     <form method="post" style="margin-top:10px;">
         <button class="btn-warn" type="submit" name="clear_cart" value="1">Borrar items</button>
     </form>
-    <div id="letterFilter" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <div id="letterFilter" class="letter-filter"></div>
 </section>
 
 <section class="grid" id="productGrid">
@@ -183,12 +183,14 @@
 
 <script>
 (function () {
+    var filterForm = document.getElementById('catalogFilters');
     var sortSelect = document.getElementById('sortItems');
     var grid = document.getElementById('productGrid');
     var letterFilter = document.getElementById('letterFilter');
     var emptyResult = document.getElementById('emptyLetterResult');
     var letterInput = document.getElementById('selectedLetterInput');
-    if (!sortSelect || !grid || !letterFilter) {
+    var filterOptions = ['0-9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '#'];
+    if (!sortSelect || !grid || !letterFilter || !filterForm) {
         return;
     }
 
@@ -246,60 +248,48 @@
         window.history.replaceState({}, '', url.toString());
     }
 
-    function renderLetterButtons() {
-        var letters = {};
-        for (var i = 0; i < cards.length; i++) {
-            letters[getCardLetter(cards[i])] = true;
+    function buildLetterUrl(letter) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('sort', sortSelect.value);
+        if (letter && letter !== 'all') {
+            url.searchParams.set('letter', letter);
+        } else {
+            url.searchParams.delete('letter');
         }
+        return url.toString();
+    }
 
-        var keys = Object.keys(letters).sort(function (a, b) {
-            if (a === '0-9') {
-                return -1;
-            }
-            if (b === '0-9') {
-                return 1;
-            }
-            if (a === '#') {
-                return 1;
-            }
-            if (b === '#') {
-                return -1;
-            }
-            return a.localeCompare(b, 'es');
-        });
-        var html = ['<button type="button" data-letter="all" style="padding:6px 10px;border:1px solid #d4d4d4;border-radius:999px;background:#fff;cursor:pointer;">Todos</button>'];
-        for (var j = 0; j < keys.length; j++) {
-            html.push('<button type="button" data-letter="' + keys[j] + '" style="padding:6px 10px;border:1px solid #d4d4d4;border-radius:999px;background:#fff;cursor:pointer;">' + keys[j] + '</button>');
+    function renderLetterButtons() {
+        var html = ['<a data-letter="all" class="letter-filter-link" href="' + buildLetterUrl('all') + '">Todos</a>'];
+        for (var j = 0; j < filterOptions.length; j++) {
+            html.push('<a data-letter="' + filterOptions[j] + '" class="letter-filter-link" href="' + buildLetterUrl(filterOptions[j]) + '">' + filterOptions[j] + '</a>');
         }
         letterFilter.innerHTML = html.join('');
         highlightActiveLetter();
     }
 
     function highlightActiveLetter() {
-        var buttons = letterFilter.querySelectorAll('button');
+        var buttons = letterFilter.querySelectorAll('a');
         for (var i = 0; i < buttons.length; i++) {
             if (buttons[i].getAttribute('data-letter') === activeLetter) {
-                buttons[i].style.background = '#111';
-                buttons[i].style.color = '#fff';
-                buttons[i].style.borderColor = '#111';
+                buttons[i].classList.add('is-active');
             } else {
-                buttons[i].style.background = '#fff';
-                buttons[i].style.color = '#111';
-                buttons[i].style.borderColor = '#d4d4d4';
+                buttons[i].classList.remove('is-active');
             }
         }
     }
 
     function applyLetterFilter() {
-        var visibleCount = 0;
-        for (var i = 0; i < cards.length; i++) {
-            var match = activeLetter === 'all' || getCardLetter(cards[i]) === activeLetter;
-            cards[i].style.display = match ? '' : 'none';
-            if (match) {
-                visibleCount++;
+        var visibleCount = cards.length;
+        if (activeLetter !== 'all') {
+            visibleCount = 0;
+            for (var i = 0; i < cards.length; i++) {
+                if (getCardLetter(cards[i]) === activeLetter) {
+                    visibleCount++;
+                }
             }
         }
-        emptyResult.style.display = visibleCount === 0 ? 'block' : 'none';
+        emptyResult.style.display = visibleCount === 0 && activeLetter !== 'all' ? 'block' : 'none';
         if (letterInput) {
             letterInput.value = activeLetter === 'all' ? '' : activeLetter;
         }
@@ -331,15 +321,6 @@
     }
 
     sortSelect.addEventListener('change', sortCards);
-    letterFilter.addEventListener('click', function (event) {
-        var button = event.target;
-        if (!button || button.tagName !== 'BUTTON') {
-            return;
-        }
-        activeLetter = button.getAttribute('data-letter') || 'all';
-        applyLetterFilter();
-    });
-
     renderLetterButtons();
     applyLetterFilter();
     updatePaginationLinks();
