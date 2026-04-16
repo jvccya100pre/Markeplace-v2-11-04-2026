@@ -10,7 +10,7 @@ class HomeController extends Controller
         $allowedWholesaleEmails = $this->parseEmailList(get_setting('wholesale_allowed_emails', ''));
         $canSeeWholesale = $isLoggedIn && isset($currentUser['email']) && in_array(mb_strtolower(trim($currentUser['email']), 'UTF-8'), $allowedWholesaleEmails, true);
         $hiddenProductIds = $this->parseIdList(get_setting('hidden_product_ids', ''));
-        $hiddenStockProductIds = $this->parseIdList(get_setting('hidden_stock_product_ids', ''));
+        $hideStockGlobally = (int)get_setting('hide_stock_globally', '0') === 1;
 
         if (is_post() && isset($_POST['clear_cart'])) {
             cart_set_items(array());
@@ -22,6 +22,10 @@ class HomeController extends Controller
         }
 
         if (is_post() && isset($_POST['add_cart'])) {
+            if (!$isLoggedIn) {
+                redirect_to(route_url('login'));
+            }
+
             $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
             $qty = isset($_POST['qty']) ? max(1, (int)$_POST['qty']) : 1;
 
@@ -165,7 +169,7 @@ class HomeController extends Controller
             'sellerId' => isset($_SESSION['seller_id']) ? (int)$_SESSION['seller_id'] : 0,
             'isLoggedIn' => $isLoggedIn,
             'canSeeWholesale' => $canSeeWholesale,
-            'hiddenStockProductIds' => $hiddenStockProductIds
+            'hideStockGlobally' => $hideStockGlobally
         ));
     }
 

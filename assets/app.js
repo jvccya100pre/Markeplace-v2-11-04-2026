@@ -141,6 +141,16 @@ function openProductModal(payload) {
         loginInfo.style.display = payload.isLoggedIn ? 'none' : 'block';
     }
 
+    var modalCartForm = document.getElementById('modalCartForm');
+    if (modalCartForm) {
+        modalCartForm.style.display = payload.isLoggedIn ? 'block' : 'none';
+    }
+
+    var loginCartInfo = document.getElementById('modalLoginCartInfo');
+    if (loginCartInfo) {
+        loginCartInfo.style.display = payload.isLoggedIn ? 'none' : 'block';
+    }
+
     var stockLine = document.getElementById('modalStockLine');
     if (stockLine) {
         stockLine.style.display = payload.showStock ? 'block' : 'none';

@@ -21,6 +21,13 @@
         <div><a class="btn btn-alt" style="display:block;text-align:center;padding:10px;" href="<?php echo esc(app_url('/products.php')); ?>">Limpiar</a></div>
     </form>
 
+    <form method="post" style="margin-bottom:10px;">
+        <input type="hidden" name="toggle_hide_stock" value="1">
+        <button type="submit" class="btn-alt" style="width:auto;padding:8px 12px;">
+            <?php echo !empty($hideStockGlobally) ? 'Mostrar stock en toda la tienda' : 'Ocultar stock en toda la tienda'; ?>
+        </button>
+    </form>
+
     <form method="post" class="filters" enctype="multipart/form-data">
         <?php if ($formData['id'] > 0): ?>
             <input type="hidden" name="update_product" value="1">
@@ -75,21 +82,18 @@
     </form>
 
     <table width="100%" border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:12px;">
-        <tr><th>ID</th><th>Categoria</th><th>Nombre</th><th>Descripcion</th><th>Codigo</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr>
+        <tr><th>Categoria</th><th>Nombre</th><th>Codigo</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr>
         <?php foreach ($rows as $r): ?>
             <?php
                 $isHiddenProduct = in_array((int)$r['id'], $hiddenProductIds, true);
-                $isHiddenStock = in_array((int)$r['id'], $hiddenStockProductIds, true);
             ?>
             <tr>
-                <td><?php echo (int)$r['id']; ?></td>
                 <td><?php echo esc($r['category_name']); ?></td>
                 <td><?php echo esc($r['name']); ?></td>
-                <td><?php echo esc($r['description']); ?></td>
                 <td><?php echo esc($r['internal_code']); ?></td>
                 <td>
                     <?php echo (int)$r['stock']; ?>
-                    <?php if ($isHiddenStock): ?><br><small style="color:#a12622;">(oculto en tienda)</small><?php endif; ?>
+                    <?php if (!empty($hideStockGlobally)): ?><br><small style="color:#a12622;">(oculto en tienda)</small><?php endif; ?>
                 </td>
                 <td>
                     <?php echo 'VES ' . number_format(isset($r['price_retail']) && $r['price_retail'] > 0 ? $r['price_retail'] : $r['price'], 2); ?><br>
@@ -104,11 +108,6 @@
                         <input type="hidden" name="toggle_hide_product" value="1">
                         <input type="hidden" name="product_id" value="<?php echo (int)$r['id']; ?>">
                         <button type="submit" class="btn-alt" style="width:auto;padding:6px 10px;"><?php echo $isHiddenProduct ? 'Mostrar producto' : 'Ocultar producto'; ?></button>
-                    </form>
-                    <form method="post" style="display:inline-block;margin-left:6px;">
-                        <input type="hidden" name="toggle_hide_stock" value="1">
-                        <input type="hidden" name="product_id" value="<?php echo (int)$r['id']; ?>">
-                        <button type="submit" class="btn-alt" style="width:auto;padding:6px 10px;"><?php echo $isHiddenStock ? 'Mostrar stock' : 'Ocultar stock'; ?></button>
                     </form>
                     <form method="post" style="display:inline-block;margin-left:6px;" onsubmit="return confirm('Eliminar producto?');">
                         <input type="hidden" name="delete_product" value="1">

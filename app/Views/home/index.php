@@ -66,7 +66,7 @@
             'showWholesale' => !empty($canSeeWholesale) && (isset($p['show_wholesale']) ? (bool)$p['show_wholesale'] : false),
             'allowNegative' => isset($p['allow_negative_stock']) ? (bool)$p['allow_negative_stock'] : false,
             'stock' => (int)$p['stock'],
-            'showStock' => !in_array((int)$p['id'], $hiddenStockProductIds, true),
+            'showStock' => empty($hideStockGlobally),
             'color' => $p['color'],
             'code' => $p['internal_code'],
             'name' => $p['name'],
@@ -79,13 +79,13 @@
                 <h3><?php echo esc($p['name']); ?></h3>
                 <p><?php echo esc($p['description']); ?></p>
                 <p>Codigo: <?php echo esc($p['internal_code']); ?></p>
-                <?php if (!in_array((int)$p['id'], $hiddenStockProductIds, true)): ?>
+                <?php if (empty($hideStockGlobally)): ?>
                     <p class="stock">Stock: <?php echo (int)$p['stock']; ?></p>
                 <?php endif; ?>
                 <?php if (!empty($isLoggedIn) && !empty($p['show_retail'])): ?>
                     <p>Precio detal: <?php echo format_price($basePrice); ?></p>
                 <?php elseif (empty($isLoggedIn)): ?>
-                    <p style="color:#a12622;font-weight:600;">Inicia sesión para ver los precios.</p>
+                    <p style="color:#a12622;font-weight:600;">Inicia sesión para ver los precios y agregar al carrito de compras.</p>
                 <?php endif; ?>
                 <?php if (!empty($canSeeWholesale) && !empty($p['show_wholesale']) && !empty($p['price_wholesale'])): ?>
                     <p>Precio mayor: <?php echo format_price($p['price_wholesale']); ?></p>
@@ -93,12 +93,16 @@
                 <?php if (!empty($p['allow_negative_stock'])): ?>
                     <p style="color:#b45d13;">Permite venta en stock negativo</p>
                 <?php endif; ?>
-                <form method="post">
-                    <input type="hidden" name="product_id" value="<?php echo (int)$p['id']; ?>">
-                    <label>Cantidad</label>
-                    <input type="number" min="1" value="1" name="qty">
-                    <button type="submit" name="add_cart" value="1" style="margin-top:10px;margin-bottom:10px;">Agregar al carrito</button>
-                </form>
+                <?php if (!empty($isLoggedIn)): ?>
+                    <form method="post">
+                        <input type="hidden" name="product_id" value="<?php echo (int)$p['id']; ?>">
+                        <label>Cantidad</label>
+                        <input type="number" min="1" value="1" name="qty">
+                        <button type="submit" name="add_cart" value="1" style="margin-top:10px;margin-bottom:10px;">Agregar al carrito</button>
+                    </form>
+                <?php else: ?>
+                    <p></p>
+                <?php endif; ?>
             </div>
         </article>
     <?php endforeach; ?>
@@ -175,13 +179,14 @@
             <p id="modalRetailPrice">Precio detal: VES <span id="mPrice"></span></p>
             <p id="modalWholesalePrice">Precio mayor: VES <span id="mPriceWholesale"></span></p>
             <p id="modalStockLine">Cantidad disponible: <span id="mQty"></span></p>
-            <p id="modalLoginPriceInfo" style="display:none;color:#a12622;font-weight:600;">Inicia sesión para ver los precios.</p>
+            <p id="modalLoginPriceInfo" style="display:none;color:#a12622;font-weight:600;">Inicia sesión para ver los precios y agregar al carrito.</p>
+            <p></p>
             <p>Color: <span id="mColor"></span></p>
             <hr>
             <p>Codigo: <span id="mCode"></span></p>
             <p>Nombre: <span id="mName"></span></p>
             <p>Stock: <span id="mStock2"></span></p>
-            <form method="post" style="margin-top:12px;">
+            <form id="modalCartForm" method="post" style="margin-top:12px;">
                 <input type="hidden" id="mProductId" name="product_id" value="0">
                 <div><label>Cantidad</label></div>
                 <div><input id="mQtyInput" type="number" min="1" value="1" name="qty"></div>

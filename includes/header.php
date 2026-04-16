@@ -11,6 +11,8 @@ $cartCount = count(cart_session_items());
     <link rel="icon" href="<?php echo esc(app_url('img/company/icono.ico')); ?>" type="image/x-icon">
     <link rel="manifest" href="<?php echo esc(app_url('manifest.json')); ?>">
     <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- <link rel="stylesheet" href="assets/allmin.css"> -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="assets/app.js" defer></script>
     <script>

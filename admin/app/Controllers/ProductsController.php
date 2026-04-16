@@ -71,18 +71,13 @@ class ProductsController extends BaseController
         }
 
         if (is_post() && isset($_POST['toggle_hide_stock'])) {
-            $id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-            if ($id > 0) {
-                $hiddenStockProducts = $this->getSettingIdList('hidden_stock_product_ids');
-                if (in_array($id, $hiddenStockProducts, true)) {
-                    $hiddenStockProducts = array_values(array_diff($hiddenStockProducts, array($id)));
-                    $message = 'Stock visible en tienda nuevamente.';
-                } else {
-                    $hiddenStockProducts[] = $id;
-                    $message = 'Stock ocultado correctamente en tienda.';
-                }
-                set_setting('hidden_stock_product_ids', implode(',', $hiddenStockProducts));
-            }
+            $hideStockGlobally = (int)get_setting('hide_stock_globally', '0') === 1;
+            $nextValue = $hideStockGlobally ? '0' : '1';
+            set_setting('hide_stock_globally', $nextValue);
+            set_setting('hidden_stock_product_ids', '');
+            $message = $hideStockGlobally
+                ? 'Stock visible en tienda nuevamente para todos los productos.'
+                : 'Stock ocultado en tienda para todos los productos.';
         }
 
         if (is_post() && isset($_POST['import_products'])) {
@@ -125,7 +120,7 @@ class ProductsController extends BaseController
             'cats' => $cats,
             'formData' => $formData,
             'hiddenProductIds' => $this->getSettingIdList('hidden_product_ids'),
-            'hiddenStockProductIds' => $this->getSettingIdList('hidden_stock_product_ids'),
+            'hideStockGlobally' => (int)get_setting('hide_stock_globally', '0') === 1,
             'rows' => $productModel->searchWithCategory($search),
         ));
     }

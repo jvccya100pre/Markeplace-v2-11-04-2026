@@ -258,10 +258,17 @@ button, .btn {
     justify-content: center;
     color: #fff;
     font-size: 22px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
     z-index: 99;
 }
 .whatsapp { bottom: 75px; background: #25D366; }
 .up { bottom: 18px; background: #111; }
+
+.whatsapp-icon {
+    width: 28px;
+    height: 28px;
+    display: block;
+}
 
 .testimonials { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
 .quote {
